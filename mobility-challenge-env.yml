@@ -1,0 +1,12 @@
+name: mobility-challenge-env
+channels:
+  - apple
+  - conda-forge
+dependencies:
+  - python=3.11.9
+  - pip
+  - pip:
+      - jupyterlab
+      - notebook
+      - ultralytics
+      - lapx

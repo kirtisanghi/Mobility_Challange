@@ -1,0 +1,139 @@
+locations:
+  - area: SADASHIVA_NAGARA
+    camera_name: Stn_HD_1
+    camera_number: 5816
+    latitude: 13.014804
+    longitude: 77.572816
+    site_id: 478
+  - area: SANJAYNAGAR
+    camera_name: MS_Ramaiah_JN_FIX_1
+    camera_number: 6165
+    latitude: 13.028447
+    longitude: 77.571478
+    site_id: 1125
+  - area: SANJAYNAGAR
+    camera_name: MS_Ramaiah_JN_FIX_2
+    camera_number: 6166
+    latitude: 13.028447
+    longitude: 77.571478
+    site_id: 1125
+  - area: SANJAYNAGAR
+    camera_name: MS_Ramaiah_JN_FIX_3
+    camera_number: 6167
+    latitude: 13.028447
+    longitude: 77.571478
+    site_id: 1125
+  - area: SADASHIVA_NAGARA
+    camera_name: Ayyappa_Temple_FIX_1
+    camera_number: 6645
+    latitude: 13.023551
+    longitude: 77.572177
+    site_id: 477
+  - area: SANJAYNAGAR
+    camera_name: Sty_Wll_Ldge_FIX_3
+    camera_number: 6162
+    latitude: 13.028873
+    longitude: 77.57152
+    site_id: 1126
+  - area: SANJAYNAGAR
+    camera_name: HP_Ptrl_Bnk_BEL_Rd_FIX_2
+    camera_number: 6164
+    latitude: 13.030116
+    longitude: 77.570854
+    site_id: 1127
+  - area: SANJAYNAGAR
+    camera_name: Devasandra_Sgnl_JN_FIX_1
+    camera_number: 6170
+    latitude: 13.036887
+    longitude: 77.566144
+    site_id: 1132
+  - area: SANJAYNAGAR
+    camera_name: Devasandra_Sgnl_JN_FIX_3
+    camera_number: 6172
+    latitude: 13.036887
+    longitude: 77.566144
+    site_id: 1132
+  - area: SANJAYNAGAR
+    camera_name: SBI_Bnk_JN_FIX_1
+    camera_number: 6177
+    latitude: 13.040655
+    longitude: 77.563501
+    site_id: 1134
+  - area: SANJAYNAGAR
+    camera_name: SBI_Bnk_JN_FIX_3
+    camera_number: 6179
+    latitude: 13.040655
+    longitude: 77.563501
+    site_id: 1134
+  - area: JALAHALLI
+    camera_name: Kuvempu_Circle_FIX_1
+    camera_number: 2853
+    latitude: 13.043601
+    longitude: 77.561301
+    site_id: 1354
+  - area: JALAHALLI
+    camera_name: Kuvempu_Circle_FIX_2
+    camera_number: 2854
+    latitude: 13.043601
+    longitude: 77.561301
+    site_id: 1354
+  - area: YESHWANTHPURA
+    camera_name: Mattikere_JN_FIX_2
+    camera_number: 8063
+    latitude: 13.02718223
+    longitude: 77.558402
+    site_id: 1210
+  - area: YESHWANTHPURA
+    camera_name: Mattikere_JN_FIX_3
+    camera_number: 8064
+    latitude: 13.02718223
+    longitude: 77.558402
+    site_id: 1210
+  - area: YESHWANTHPURA
+    camera_name: Mattikere_JN_HD_1
+    camera_number: 8065
+    latitude: 13.02718223
+    longitude: 77.558402
+    site_id: 1210
+  - area: YESHWANTHPURA
+    camera_name: Udayagiri_JN_FIX_2
+    camera_number: 8072
+    latitude: 13.03077486
+    longitude: 77.5599806
+    site_id: 1212
+  - area: YESHWANTHPURA
+    camera_name: Ramaiah_BsStp_JN_FIX_1
+    camera_number: 8067
+    latitude: 13.0287915
+    longitude: 77.5615568
+    site_id: 1211
+  - area: YESHWANTHPURA
+    camera_name: Ramaiah_BsStp_JN_FIX_2
+    camera_number: 8068
+    latitude: 13.0287915
+    longitude: 77.5615568
+    site_id: 1211
+  - area: MALLESWARAM
+    camera_name: 18th_Crs_BsStp_JN_FIX_1
+    camera_number: 4935
+    latitude: 13.009179
+    longitude: 77.571197
+    site_id: 952
+  - area: MALLESWARAM
+    camera_name: 18th_Crs_BsStp_JN_FIX_2
+    camera_number: 4936
+    latitude: 13.009179
+    longitude: 77.571197
+    site_id: 952
+  - area: MALLESWARAM
+    camera_name: 18th_Crs_Bus_Stop_FIX_1
+    camera_number: 4895
+    latitude: 13.011451
+    longitude: 77.568785
+    site_id: 954
+  - area: MALLESWARAM
+    camera_name: 18th_Crs_Bus_Stop_FIX_2
+    camera_number: 4896
+    latitude: 13.011451
+    longitude: 77.568785
+    site_id: 954
