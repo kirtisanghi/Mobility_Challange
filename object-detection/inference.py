@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+import os
 from collections import defaultdict, deque
 
+import yaml
 import cv2
 from ultralytics import YOLO
 import numpy as np
@@ -20,9 +22,36 @@ target_class_list = [
     "truck"
 ]
 
+RED_RGB = (0, 0, 255)
+YELLOW_RGB = (0, 255, 255)
+GREEN_RGB = (0, 255, 0)
 
-# Function to draw grid and coordinates
+
+# extracts the file name from the provided fully
+# qualified file path
+def extract_file_name(full_file_path: str) -> str:
+    return os.path.basename(full_file_path)
+
+
+# reads the annotation config file and loads
+# yaml config into python dictionary
+def load_annotations_config(config_path: str = "config/annotations.yaml"):
+    try:
+        with open(file=config_path, mode="r") as file:
+            return yaml.safe_load(file)
+    except FileNotFoundError or yaml.YAMLError as e:
+        raise e
+
+
+# extracts the camera name identifier from the video
+# file name
+def extract_camera_name(file_name: str) -> str:
+    splitted_items = file_name.split("_time_")
+    return splitted_items[0]
+
+
 def draw_grid_with_coordinates(frame, step=50, color=(255, 255, 255), thickness=1, font_scale=0.4):
+    """ annotates the entire frame into x-y grids with each cell of 50 pixels """
     height, width, _ = frame.shape
     # Draw vertical lines
     for x in range(0, width, step):
@@ -49,31 +78,91 @@ def calculate_slope_and_intercept(starting_point, ending_point):
     return slope, intercept
 
 
-def has_object_crossed_line(start_coordinates, end_coordinates, x_center_cur, y_center_cur, x_center_prev,
-                            y_center_prev):
+def calculate_center_of_bounding_box(bounding_box):
+    """ calculate the center for the provided bounding box coordinates """
+    x_min, y_min, x_max, y_max = bounding_box
+    x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
+    x_center = int(x_min + x_max) // 2
+    y_center = int(y_min + y_max) // 2
+    return x_center, y_center
+
+
+def has_object_crossed_line(start_coordinates, end_coordinates, cur_center_coordinates, prev_center_coordinates, direction):
     """ determines if the object has passed the crossing line """
     slope, intercept = calculate_slope_and_intercept(start_coordinates, end_coordinates)
-    current_sign = np.sign(y_center_cur - (slope * x_center_cur + intercept))
-    previous_sign = np.sign(y_center_prev - (slope * x_center_prev + intercept))
-    return (current_sign != previous_sign) or (current_sign < 0 and previous_sign < 0)
+    cur_x_center, cur_y_center = cur_center_coordinates
+    prev_x_center, prev_y_center = prev_center_coordinates
+    current_sign = np.sign(cur_y_center - (slope * cur_x_center + intercept))
+    previous_sign = np.sign(prev_y_center - (slope * prev_x_center + intercept))
+    # if direction == "north":
+    #     return (current_sign != previous_sign) or (current_sign < 0 and previous_sign < 0)
+    # elif direction == "south":
+    #     return (current_sign != previous_sign) or (current_sign > 0 and previous_sign > 0)
+    return current_sign != previous_sign
+
+
+def annotate_object_center(frame, msg, center_coordinates):
+    cv2.circle(frame, center_coordinates, 4, RED_RGB, -1)
+    cv2.putText(frame, msg, center_coordinates, cv2.FONT_HERSHEY_COMPLEX, 0.8, YELLOW_RGB, 2)
+
+
+def annotate_object_bounding_box(frame, bounding_box):
+    x_min, y_min, x_max, y_max = bounding_box
+    x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
+    cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), GREEN_RGB, 2)
+
+
+def annotate_crossing_line(frame, start_coordinates, end_coordinates, origin_coordinates, msg):
+    # msg = "Crossing Line"
+    cv2.line(frame, start_coordinates, end_coordinates, RED_RGB, 4)
+    cv2.putText(frame, msg, origin_coordinates, cv2.FONT_HERSHEY_SIMPLEX, 1, YELLOW_RGB, 2, cv2.LINE_AA)
+
+
+def annotate_detection_result(frame, detected_vehicles, offset, origin_coordinates, direction):
+    # offset = 30
+    # x_axis = 100
+    x_axis, y_axis = origin_coordinates
+    cv2.putText(frame, direction, origin_coordinates, cv2.FONT_HERSHEY_SIMPLEX, 0.5, YELLOW_RGB, 2, cv2.LINE_AA)
+    for key, value in detected_vehicles[direction].items():
+        y_axis += offset
+        msg = f"{key}: {value}"
+        cv2.putText(frame, msg, (x_axis, y_axis), cv2.FONT_HERSHEY_SIMPLEX, 0.5, YELLOW_RGB, 2, cv2.LINE_AA)
 
 
 def main():
     # Load the YOLOv8 model
     model = YOLO("models/yolov8n.pt", verbose=True)
 
-    # Open the video file
-    video_path = "videos/18th_Crs_BsStp_JN_FIX_1_time_2024-05-14T07:30:02_000.mp4"
-    capture = cv2.VideoCapture(video_path)
+    config = load_annotations_config()
+    locations = config.get("locations")
 
-    # Store the track history
+    # Open the video file
+    video_path = "videos/18th_Crs_BsStp_JN_FIX_2_time_2024-05-14T07:30:02_000.mp4"
+    video_name = extract_file_name(video_path)
+    camera_name = extract_camera_name(video_name)
+
+    camera_configurations = locations.get(camera_name)
+    directions = camera_configurations.get("directions")
+
     track_history = defaultdict(lambda: deque())
-    frame_number = 0
-    detected_vehicles = {vehicle_class_map[label]: 0 for label in target_class_list}
+    detected_vehicles = dict()
     crossed_vehicles = list()
-    start_point = (500, 390)  # (450, 400)
-    end_point = (1600, 280)  # (1750, 400)
-    crossing_line_text_origin = (450, 430)
+    annotations = dict()
+
+    for direction, annotation in directions.items():
+        detected_vehicles[direction] = {vehicle_class_map[label]: 0 for label in target_class_list}
+        line = annotation.get("line")
+        text = annotation.get("text")
+        result = annotation.get("result")
+        annotations[direction] = {
+            "starting_point": (line.get("x1"), line.get("y1")),
+            "ending_point": (line.get("x2"), line.get("y2")),
+            "text_origin": (text.get("x1"), text.get("y1")),
+            "result_origin": (result.get("x1"), result.get("y1")),
+            "result_offset": result.get("offset")
+        }
+
+    capture = cv2.VideoCapture(video_path)
 
     # Loop through the video frames
     while capture.isOpened():
@@ -82,16 +171,19 @@ def main():
         success, frame = capture.read()
 
         if success:
-            frame_number += 1
+            frame_number = capture.get(cv2.CAP_PROP_POS_FRAMES)
 
-            # add grid to the image frame
+            # # add grid to the image frame
             # frame = draw_grid_with_coordinates(frame)
 
             # Run YOLOv8 tracking on the frame, persisting tracks between frames
-            results = model.track(frame, persist=True)
+            results = model.track(frame, conf=0.7, iou=0.5, persist=True)
 
             # Get the bounding boxes, scores, labels and tracking ids
             for result in results:
+                if result.boxes.is_track is False:
+                    print(f"no objects detected in {frame_number} frame")
+                    continue
                 trained_object_map = result.names
                 bounding_boxes = result.boxes.xyxy.cpu()
                 scores = result.boxes.conf.cpu()
@@ -107,46 +199,49 @@ def main():
 
                     if label in target_class_list:
                         label = vehicle_class_map.get(label)
-                        x_min, y_min, x_max, y_max = bounding_box
-                        x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
-                        x_center = int(x_min + x_max) // 2
-                        y_center = int(y_min + y_max) // 2
+                        obj_identifier = f"{track_id}: {label}"
+                        center_coordinates = calculate_center_of_bounding_box(bounding_box)
                         track = track_history[track_id]
-                        track.append((x_center, y_center))  # x, y center point
+                        track.append(center_coordinates)
 
-                        cv2.circle(frame, (x_center, y_center), 4, (0, 0, 255), -1)
-                        cv2.putText(frame, f"{track_id}: {label}", (x_center, y_center), cv2.FONT_HERSHEY_COMPLEX, 0.8,
-                                    (0, 255, 255), 2)
+                        annotate_object_center(frame, obj_identifier, center_coordinates)
 
                         if len(track) > 30:  # retain 30 tracks for 90 frames
                             track.popleft()
 
                         if track_id in crossed_vehicles:
-                            cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+                            annotate_object_bounding_box(frame, bounding_box)
                         else:
-                            if len(track) >= 2 and (
-                                    has_object_crossed_line(start_point, end_point, x_center, y_center, track[-2][0],
-                                                            track[-2][1]) is np.True_):
-                                # (track[-2][1] > 400 > y_center) or (track[-2][1] < 400 and y_center < 400)):
-                                crossed_vehicles.append(track_id)
-                                detected_vehicles[label] += 1
-                                cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+                            if len(track) >= 2:
+                                prev_center_coordinates = track[-2]
+                                for direction, annotation in annotations.items():
+                                    if has_object_crossed_line(
+                                            annotation.get("starting_point"),
+                                            annotation.get("ending_point"),
+                                            center_coordinates,
+                                            prev_center_coordinates,
+                                            direction) is np.True_:
+                                        crossed_vehicles.append(track_id)
+                                        detected_vehicles[direction][label] += 1
+                                        annotate_object_bounding_box(frame, bounding_box)
+                                        break
 
-                red_color = (0, 0, 255)
-                yellow_color = (0, 255, 255)
+                for direction, annotation in annotations.items():
+                    annotate_crossing_line(
+                        frame,
+                        annotation.get("starting_point"),
+                        annotation.get("ending_point"),
+                        annotation.get("text_origin"),
+                        direction
+                    )
 
-                cv2.line(frame, start_point, end_point, red_color, 5)
-                cv2.putText(frame, 'Crossing Line', crossing_line_text_origin, cv2.FONT_HERSHEY_SIMPLEX, 1,
-                            yellow_color, 4,
-                            cv2.LINE_AA)
-                offset = 30
-                x_axis = 100
-                y_axis = 100
-                for key, value in detected_vehicles.items():
-                    cv2.putText(frame, f"{key}: {value}", (x_axis, y_axis), cv2.FONT_HERSHEY_SIMPLEX, 0.5, yellow_color,
-                                2,
-                                cv2.LINE_AA)
-                    y_axis += offset
+                    annotate_detection_result(
+                        frame,
+                        detected_vehicles,
+                        annotation.get("result_offset"),
+                        annotation.get("result_origin"),
+                        direction
+                    )
 
                 # Display the annotated frame
                 cv2.imshow("Realtime Object Detection & Tracking", frame)
