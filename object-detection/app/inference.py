@@ -49,7 +49,7 @@ def detect_and_track(video_path: str, file_name: str):
     detection_class_obj = detection_class()
 
     # Load the YOLOv8 model
-    model = YOLO("models/yolov8n.pt", verbose=True)
+    model = YOLO("models/Best_DataClusterIEEEDataset_v0.1.pt", verbose=True)
 
     # start capturing the video frames using opencv
     capture = cv2.VideoCapture(video_path)
