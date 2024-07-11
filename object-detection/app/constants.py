@@ -7,18 +7,22 @@ YELLOW_RGB = (0, 255, 255)
 GREEN_RGB = (0, 255, 0)
 
 VEHICLE_CLASS_MAP = {
-    "bicycle": "Bicycle",
-    "bus": "Bus",
-    "car": "Cars",
-    "motorcycle": "Two-Wheeler",
-    "truck": "Truck",
+    "IndianBicycle": "Bicycle",
+    "IndianBus": "Bus",
+    "IndianCar": "Cars",
+    "Two-Wheeler": "Two-Wheeler",
+    "Three-Wheeler": "Three-Wheeler",
+    "LCV": "LCV",
+    "IndianTruck": "Truck"
 }
 TARGET_CLASS_LIST = [
-    "bicycle",
-    "car",
-    "bus",
-    "motorcycle",
-    "truck"
+    "IndianBicycle",
+    "IndianBus",
+    "IndianCar",
+    "Two-Wheeler",
+    "Three-Wheeler",
+    "LCV",
+    "IndianTruck"
 ]
 
 GOING_UP = "Going Up"

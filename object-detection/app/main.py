@@ -34,7 +34,6 @@ def main():
         for object_key in video_object_keys:
             signed_url = aws.generate_signed_url(object_key)
             detect_and_track_with_s3_file(object_key, signed_url)
-            break
 
     print("object detection script completed successfully")
 
