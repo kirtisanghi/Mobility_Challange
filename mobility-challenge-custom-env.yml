@@ -8,4 +8,4 @@ dependencies:
   - pip:
       - jupyterlab
       - notebook
-      - absl-py
+      - boto3

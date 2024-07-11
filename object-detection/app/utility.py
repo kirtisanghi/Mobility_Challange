@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 
 import os
+from datetime import datetime as dt
 
 import yaml
 import cv2
 import numpy as np
+import pandas as pd
+import boto3
+from botocore.exceptions import ClientError
 
 from constants import (
     ANNOTATIONS_CONFIG,
     RED_RGB,
     GREEN_RGB,
-    YELLOW_RGB
+    YELLOW_RGB,
+    SEQUENCE_TO_TIME_MAP
 )
 
 
@@ -41,6 +46,21 @@ def extract_camera_name(file_name: str) -> str:
     """
     splitted_items = file_name.split("_time_")
     return splitted_items[0]
+
+
+def extract_file_name_minus_extension(file_name: str) -> str:
+    splitted_items = file_name.split(".")
+    return splitted_items[0]
+
+
+def construct_timestamp_from_file_name(file_name: str):
+    _, timestamp_part = file_name.split("_time_")
+    timestamp_part = timestamp_part.removesuffix(".mp4")
+    timestamp_str, index = timestamp_part.split("_")
+    timestamp_dt = dt.fromisoformat(timestamp_str)
+    constructed_timestamp_str = f"{timestamp_dt.date()}T{SEQUENCE_TO_TIME_MAP.get(index)}"
+    constructed_timestamp = dt.fromisoformat(constructed_timestamp_str)
+    return constructed_timestamp
 
 
 def draw_grid_with_coordinates(frame, step=50, color=(255, 255, 255), thickness=1, font_scale=0.4):
@@ -162,4 +182,57 @@ def is_object_in_polygon_area(center_coordinates, polygon_points):
     """
     result = cv2.pointPolygonTest(polygon_points, center_coordinates, measureDist=True)
     return result >= 0
+
+
+def sample_and_aggregate_data(time_series_data: list):
+    # load the inference data as pandas dataframe
+    data_frame = pd.DataFrame(time_series_data)
+
+    # convert timestamp column into datetime type
+    data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
+
+    # set timestamp column as the index
+    data_frame.set_index("timestamp", inplace=True)
+
+    # group the dataframe by direction and resample the dataframe
+    # to aggregate all the numerical columns over 1 min interval
+    grouped_and_sampled_df = data_frame.groupby("direction").resample("1min").sum(numeric_only=True)
+
+    # reset the index
+    grouped_and_sampled_df.reset_index(inplace=True)
+
+    return grouped_and_sampled_df
+
+
+class AmazonService:
+    def __init__(self, profile_name: str, s3_bucket: str = "ieee-dataport"):
+        self.bucket = s3_bucket
+        self.profile = profile_name
+
+        self.session = boto3.session.Session(profile_name=self.profile)
+        self.client = self.session.client("s3")
+
+    def list_objects_with_prefix(self, prefix: str) -> list[str]:
+        try:
+            response = self.client.list_objects_v2(Bucket=self.bucket, Prefix=prefix)
+            contents = response.get("Contents")
+            video_keys = [content.get("Key") for content in contents if content.get("Key").endswith(".mp4")]
+            print(f"found {len(contents)} objects with prefix {prefix}, of which {len(video_keys)} are video files")
+            return video_keys
+        except ClientError as err:
+            raise Exception(f"an error occurred while listing objects in {self.bucket} with prefix \"{prefix}\"\n{err}")
+
+    def generate_signed_url(self, object_key: str) -> str:
+        try:
+            signed_url = self.client.generate_presigned_url(
+                ClientMethod="get_object",
+                Params={
+                    "Bucket": self.bucket,
+                    "Key": object_key
+                }
+            )
+            print(f"signed url successfully generated for {object_key}")
+            return signed_url
+        except ClientError as err:
+            raise Exception(f"failed to created signed url for {object_key}\n{err}")
 
