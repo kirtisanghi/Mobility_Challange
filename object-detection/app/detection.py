@@ -32,6 +32,8 @@ class ObjectDetectionAndTracking(ABC):
     track_history = defaultdict(lambda: deque())
     crossed_vehicles = list()
     detected_vehicles = dict()
+    detected_vehicles_in_frame = dict()
+    detected_vehicles_time_series = list()
 
     @abstractmethod
     def add_detection_annotation(self, frame):
@@ -45,19 +47,36 @@ class ObjectDetectionAndTracking(ABC):
     def track_object(self, frame, bounding_box, label, track_id, cur_center_coord, prev_center_coord):
         pass
 
+    @abstractmethod
+    def construct_tracker_dict(self):
+        """ construct the dict to store tracker results with required defaults """
+        pass
+
+    def reset_frame_tracker(self):
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+    def append_to_time_series(self, timestamp, frame_number):
+        for key, value in self.detected_vehicles_in_frame.items():
+            row_data = {
+                "direction": key,
+                "timestamp": timestamp,
+                "frame": frame_number,
+                **value
+            }
+            self.detected_vehicles_time_series.append(row_data)
+
     def _on_successful_tracking(self, frame, bounding_box, track_id, label, direction):
         self.crossed_vehicles.append(track_id)
         self.detected_vehicles[direction][label] += 1
+        self.detected_vehicles_in_frame[direction][label] += 1
         annotate_object_bounding_box(frame, bounding_box)
 
 
 class Camera4935(ObjectDetectionAndTracking):
+
     camera_name = "18th_Crs_BsStp_JN_FIX_1"
     camera_number = 4935
     site_id = 952
-    detected_vehicles = {
-        GOING_UP: {VEHICLE_CLASS_MAP[label]: 0 for label in TARGET_CLASS_LIST}
-    }
 
     def __init__(self):
         self.line_start = (500, 390)
@@ -65,6 +84,13 @@ class Camera4935(ObjectDetectionAndTracking):
         self.line_text = (450, 430)
         self.result_origin = (100, 100)
         self.result_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+    def construct_tracker_dict(self):
+        return {
+            GOING_UP: {VEHICLE_CLASS_MAP[label]: 0 for label in TARGET_CLASS_LIST}
+        }
 
     def add_detection_annotation(self, frame):
         annotate_crossing_line(frame, self.line_start, self.line_end, self.line_text)
@@ -87,10 +113,6 @@ class Camera4936(ObjectDetectionAndTracking):
     camera_name = "18th_Crs_BsStp_JN_FIX_2"
     camera_number = 4936
     site_id = 952
-    detected_vehicles = {
-        GOING_DOWN: {VEHICLE_CLASS_MAP[label]: 0 for label in TARGET_CLASS_LIST},
-        GOING_UP: {VEHICLE_CLASS_MAP[label]: 0 for label in TARGET_CLASS_LIST}
-    }
 
     def __init__(self):
         self.left_polygon = np.array([[0, 500], [1150, 0], [1150, 175], [0, 840]], np.int32)
@@ -104,6 +126,14 @@ class Camera4936(ObjectDetectionAndTracking):
         self.left_offset = 20
         self.right_result_origin = (1650, 100)
         self.right_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+    def construct_tracker_dict(self):
+        return {
+            GOING_DOWN: {VEHICLE_CLASS_MAP[label]: 0 for label in TARGET_CLASS_LIST},
+            GOING_UP: {VEHICLE_CLASS_MAP[label]: 0 for label in TARGET_CLASS_LIST}
+        }
 
     def add_detection_annotation(self, frame):
 
