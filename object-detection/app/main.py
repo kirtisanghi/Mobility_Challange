@@ -35,7 +35,7 @@ def main():
             signed_url = aws.generate_signed_url(object_key)
             detect_and_track_with_s3_file(object_key, signed_url)
 
-    print("object detection script completed successfully")
+    print("object detection script execution completed")
 
 
 if __name__ == "__main__":
