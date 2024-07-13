@@ -19,6 +19,11 @@ from constants import (
 )
 
 
+def is_colab_env():
+    """ verifies if the runtime environment is associated to collab """
+    return "COLAB_RELEASE_TAG" in os.environ
+
+
 def extract_file_name(full_file_path: str) -> str:
     """
     extracts the file name from the provided fully
