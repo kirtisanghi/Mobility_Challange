@@ -101,7 +101,6 @@ def detect_and_track(video_path: str, file_name: str):
                     print(f"no objects detected in {frame_number} frame")
                     continue
                 trained_object_map = result.names
-                print(trained_object_map)
                 bounding_boxes = result.boxes.xyxy.cpu()
                 scores = result.boxes.conf.cpu()
                 labels = result.boxes.cls.int().cpu().tolist()
