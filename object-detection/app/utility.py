@@ -188,6 +188,9 @@ def sample_and_aggregate_data(time_series_data: list):
     # load the inference data as pandas dataframe
     data_frame = pd.DataFrame(time_series_data)
 
+    # drop frame column
+    data_frame.drop(columns=["frame"], inplace=True)
+
     # convert timestamp column into datetime type
     data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
 
@@ -216,6 +219,9 @@ class AmazonService:
         try:
             response = self.client.list_objects_v2(Bucket=self.bucket, Prefix=prefix)
             contents = response.get("Contents")
+            if contents is None:
+                print(f"no objects found in bucket \"{self.bucket}\" with prefix \"{prefix}\"")
+                return []
             video_keys = [content.get("Key") for content in contents if content.get("Key").endswith(".mp4")]
             print(f"found {len(contents)} objects with prefix {prefix}, of which {len(video_keys)} are video files")
             return video_keys

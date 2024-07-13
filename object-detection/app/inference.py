@@ -12,7 +12,8 @@ from utility import (
     annotate_object_bounding_box,
     extract_file_name_minus_extension,
     sample_and_aggregate_data,
-    construct_timestamp_from_file_name
+    construct_timestamp_from_file_name,
+    draw_grid_with_coordinates
 )
 from constants import (
     TARGET_CLASS_LIST,
@@ -44,7 +45,10 @@ def detect_and_track(video_path: str, file_name: str):
     # the video file name
     camera_name = extract_camera_name(file_name)
     video_start_time_stamp = construct_timestamp_from_file_name(file_name)
-    detection_class = detection_class_map.get(camera_name)
+    try:
+        detection_class = detection_class_map[camera_name]
+    except KeyError:
+        exit(f"Camera \"{camera_name}\" is yet to be not onboarded to this script!")
 
     detection_class_obj = detection_class()
 
@@ -97,6 +101,7 @@ def detect_and_track(video_path: str, file_name: str):
                     print(f"no objects detected in {frame_number} frame")
                     continue
                 trained_object_map = result.names
+                print(trained_object_map)
                 bounding_boxes = result.boxes.xyxy.cpu()
                 scores = result.boxes.conf.cpu()
                 labels = result.boxes.cls.int().cpu().tolist()
