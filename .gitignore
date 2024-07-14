@@ -1,4 +1,4 @@
 .idea
 object-detection/models/
 object-detection/videos/
-object-detection/app/__pycache__/
+object-detection/ml/__pycache__/

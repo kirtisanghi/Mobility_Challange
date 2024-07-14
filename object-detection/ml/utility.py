@@ -10,13 +10,18 @@ import pandas as pd
 import boto3
 from botocore.exceptions import ClientError
 
-from constants import (
+from .constants import (
     ANNOTATIONS_CONFIG,
     RED_RGB,
     GREEN_RGB,
     YELLOW_RGB,
     SEQUENCE_TO_TIME_MAP
 )
+
+
+def is_colab_env():
+    """ verifies if the runtime environment is associated to collab """
+    return "COLAB_RELEASE_TAG" in os.environ
 
 
 def extract_file_name(full_file_path: str) -> str:

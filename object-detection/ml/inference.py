@@ -4,7 +4,7 @@ from datetime import timedelta as td
 import cv2
 from ultralytics import YOLO
 
-from utility import (
+from .utility import (
     extract_file_name,
     extract_camera_name,
     calculate_center_of_bounding_box,
@@ -13,30 +13,32 @@ from utility import (
     extract_file_name_minus_extension,
     sample_and_aggregate_data,
     construct_timestamp_from_file_name,
+    is_colab_env,
     draw_grid_with_coordinates
 )
-from constants import (
+from .constants import (
     TARGET_CLASS_LIST,
-    VEHICLE_CLASS_MAP
+    VEHICLE_CLASS_MAP,
+    DETECTABLE_CLASSES
 )
-from detection import (
+from .detection import (
     detection_class_map
 )
 
 
-def detect_and_track_with_local_file(video_path: str):
+def detect_and_track_with_local_file(video_path: str, output_path: str = None):
     """ wrapper to trigger object detection using local video file """
     file_name = extract_file_name(video_path)
-    detect_and_track(video_path, file_name)
+    detect_and_track(video_path, file_name, output_path)
 
 
-def detect_and_track_with_s3_file(object_key: str, signed_url: str):
+def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path: str = None):
     """ wrapper to trigger object detection using video file from s3 bucket """
     file_name = extract_file_name(object_key)
-    detect_and_track(signed_url, file_name)
+    detect_and_track(signed_url, file_name, output_path)
 
 
-def detect_and_track(video_path: str, file_name: str):
+def detect_and_track(video_path: str, file_name: str, output_filename: str = None):
     """
     initiate object detection and tracking using yolo
     model for the provided video path
@@ -78,7 +80,7 @@ def detect_and_track(video_path: str, file_name: str):
 
             # Run object tracking using yolo model on the frame,
             # persisting tracks between frames
-            results = model.track(frame, conf=0.6, iou=0.5, persist=True)
+            results = model.track(frame, conf=0.6, iou=0.5, persist=True,  classes=list(DETECTABLE_CLASSES.keys()))
 
             # add grid to the image frame
             # frame = draw_grid_with_coordinates(frame)
@@ -149,7 +151,8 @@ def detect_and_track(video_path: str, file_name: str):
                 detection_class_obj.add_result_annotation(frame)
 
                 # Display the annotated frame
-                cv2.imshow("Realtime Object Detection & Tracking", frame)
+                if not is_colab_env():
+                    cv2.imshow("Realtime Object Detection & Tracking", frame)
 
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -165,5 +168,6 @@ def detect_and_track(video_path: str, file_name: str):
     # load the timeseries data into pandas dataframe
     sampled_data_frame = sample_and_aggregate_data(detection_class_obj.detected_vehicles_time_series)
 
-    output_filename = f"{extract_file_name_minus_extension(file_name)}.csv"
+    if output_filename is None:
+        output_filename = f"{extract_file_name_minus_extension(file_name)}.csv"
     sampled_data_frame.to_csv(output_filename)
