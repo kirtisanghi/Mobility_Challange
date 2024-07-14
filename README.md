@@ -10,11 +10,11 @@ The hackathon will have two phases.
 
 As part of this challenge we are proposing a solution to detect the different vehicles at the traffic junction from the CCTV feed using deep learning algorithms and use the obtained data for volume prediction.
 
-### Phase 1.1 Object Detection and Tracking
+## Phase 1.1 Object Detection and Tracking
 
 *_Ultralytics YOLOv8 Models_* will be used for vehicle detection using their `yolov8` model with `track` task
 
-#### Python Environment creation
+### Python Environment creation
 
 We are using `conda` to manage the python virtual environment. We can use different virtual environments when using pre-trained model vs fine-tuned model. `mobility-challenge-env.yml` consists the config for creating a conda env for running inference against pre-trained model and `mobility-challenge-custom-env.yml` consists the config for creating conda env for running inference against fine-tuned model
 
@@ -60,7 +60,57 @@ git apply add_head.patch
 pip install -e .
 ```
 
-### Phase 1.2 Vehicle Volume Prediction
+### Execution of Object Detection Script
+`ml` package contains all the code for object detection, inference and other utility functions. The objective of running `ml` package is to detect the number of vehicles going in different directions at any particular junction for which the cctv camera feed (15 min clip) is provided. The number of vehicles are detected based on their classes eg `Cars`, `Bicycle`, `Two-Wheeler`, `Three-Wheeler`, `LCV`, `Truck` and `Bus`
+
+The object detection script can be executed in one of the following ways. Note that the script is executed from `object-detection` folder
+
+#### Invoking `ml` package
+The video clip is the input to script which outputs the detection results in the csv file. The script can be executed with video clip available in the local directory or in s3 bucket.
+```shell
+usage: main.py [-h] (--input-path INPUT_PATH | --s3-input-path-prefix S3_INPUT_PATH_PREFIX) [--output-file-name OUTPUT_FILE_NAME]
+
+Object Detection and Tracking Script
+
+options:
+  -h, --help            show this help message and exit
+  --input-path INPUT_PATH
+                        Path to the video file stored in local
+  --s3-input-path-prefix S3_INPUT_PATH_PREFIX
+                        Prefix of the video file stored in ieee s3 bucket
+  --output-file-name OUTPUT_FILE_NAME
+                        csv file name for output of object detection
+```
+
+* Invoking script having video clip locally. A flag `--input-path` needs to be passed followed by its value. Optionally, one can also pass the file path where the csv file should be generated using `--output-file-name` flag. The below example shows the execution of script for a video clip `HP_Ptrl_Bnk_BEL_Rd_FIX_2_time_2024-05-14T07:30:02_000.mp4` available in `videos` folder along with the output filename as `detection-results.csv` 
+    ```shell
+  python -m ml.main --input-path "videos/HP_Ptrl_Bnk_BEL_Rd_FIX_2_time_2024-05-14T07:30:02_000.mp4" --output-file-name "detection-results.csv"
+  ```
+
+* Invoking script having video clip stored in AWS cloud's s3 bucket. You can either pass the full path to the s3 file or the prefix for the file (in this case all the files with this script will be used for object detection) available in `ieee-dataport` s3 bucket. A _*signed url*_ with be generated for the s3 file and that will be used to feed to the object detection model. Optionally, the file path to generate the csv file can also be passed using --output-file-name flag.
+  Note that the script used AWS `boto3` python sdk to make AWS API calls, and it uses an aws cli profile named `hackathon`. Hence, before running executing below command make sure you have an aws profile configured with name `hackathon` having enough permissions.
+    ```shell
+  python -m ml.main --s3-input-path-prefix "competition/1253487/13083/Videos/2024-05-14/Ayyappa_Temple_FIX_1_time_2024-05-14T07:30:02_000.mp4" --output-file-name "detection-results.csv"
+  ```
 
 
-### Phase 2.0 Vehicle Re-identification
+#### invoking `app.py` package
+Alternatively, the `ml` package can be invoked using `app.py` module, which internally calls the `ml` package. This is wrapper and specifically made available to be used while leaderboard submission and evaluation as suggested in [Leaderboard submission guidelines.pdf](https://drive.google.com/file/d/15t8_dtQjTBx3ueIR_eVTx2PPQtwsRcsD/view)
+```shell
+python app.py
+[warn]: required arguments missing, please provide all the required arguments and execute the script in following way
+
+python app.py {input_video} {output_file_name}
+
+input_video      -> Stn_HD_1.mp4
+output_file_name -> Output_Turning_Patterns.csv
+```
+Invoke the script for `Ayyappa_Temple_FIX_1_time_2024-05-14T07:30:02_000.mp4` video clip and output the result csv at `Ayyappa_Temple_FIX_1_time_2024-05-14T07:30:02_000.csv`
+```shell
+python app.py videos/Ayyappa_Temple_FIX_1_time_2024-05-14T07:30:02_000.mp4 Ayyappa_Temple_FIX_1_time_2024-05-14T07:30:02_000.csv
+```
+
+## Phase 1.2 Vehicle Volume Prediction
+
+
+## Phase 2.0 Vehicle Re-identification
