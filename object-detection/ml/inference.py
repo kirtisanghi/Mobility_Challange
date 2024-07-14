@@ -3,6 +3,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 import cv2
 from ultralytics import YOLO
+import torch
 
 from .utility import (
     extract_file_name,
@@ -55,7 +56,8 @@ def detect_and_track(video_path: str, file_name: str, output_filename: str = Non
     detection_class_obj = detection_class()
 
     # Load the YOLOv8 model
-    model = YOLO("models/Best_DataClusterIEEEDataset_v0.1.pt", verbose=True)
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model = YOLO("models/Best_DataClusterIEEEDataset_v0.1.pt", verbose=True).to(device)
 
     # start capturing the video frames using opencv
     capture = cv2.VideoCapture(video_path)
@@ -103,10 +105,16 @@ def detect_and_track(video_path: str, file_name: str, output_filename: str = Non
                     print(f"no objects detected in {frame_number} frame")
                     continue
                 trained_object_map = result.names
-                bounding_boxes = result.boxes.xyxy.cpu()
-                scores = result.boxes.conf.cpu()
-                labels = result.boxes.cls.int().cpu().tolist()
-                track_ids = result.boxes.id.int().cpu().tolist()
+                if torch.cuda.is_available():
+                    bounding_boxes = result.boxes.xyxy.cuda()
+                    scores = result.boxes.conf.cuda()
+                    labels = result.boxes.cls.int().cuda().tolist()
+                    track_ids = result.boxes.id.int().cuda().tolist()
+                else:
+                    bounding_boxes = result.boxes.xyxy.cpu()
+                    scores = result.boxes.conf.cpu()
+                    labels = result.boxes.cls.int().cpu().tolist()
+                    track_ids = result.boxes.id.int().cpu().tolist()
 
                 # Visualize the results on the frame
                 # annotated_frame = result.plot()
