@@ -4,7 +4,7 @@ from datetime import timedelta as td
 import cv2
 from ultralytics import YOLO
 
-from utility import (
+from .utility import (
     extract_file_name,
     extract_camera_name,
     calculate_center_of_bounding_box,
@@ -16,29 +16,29 @@ from utility import (
     is_colab_env,
     draw_grid_with_coordinates
 )
-from constants import (
+from .constants import (
     TARGET_CLASS_LIST,
     VEHICLE_CLASS_MAP,
     DETECTABLE_CLASSES
 )
-from detection import (
+from .detection import (
     detection_class_map
 )
 
 
-def detect_and_track_with_local_file(video_path: str):
+def detect_and_track_with_local_file(video_path: str, output_path: str = None):
     """ wrapper to trigger object detection using local video file """
     file_name = extract_file_name(video_path)
-    detect_and_track(video_path, file_name)
+    detect_and_track(video_path, file_name, output_path)
 
 
-def detect_and_track_with_s3_file(object_key: str, signed_url: str):
+def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path: str = None):
     """ wrapper to trigger object detection using video file from s3 bucket """
     file_name = extract_file_name(object_key)
-    detect_and_track(signed_url, file_name)
+    detect_and_track(signed_url, file_name, output_path)
 
 
-def detect_and_track(video_path: str, file_name: str):
+def detect_and_track(video_path: str, file_name: str, output_filename: str = None):
     """
     initiate object detection and tracking using yolo
     model for the provided video path
@@ -168,5 +168,6 @@ def detect_and_track(video_path: str, file_name: str):
     # load the timeseries data into pandas dataframe
     sampled_data_frame = sample_and_aggregate_data(detection_class_obj.detected_vehicles_time_series)
 
-    output_filename = f"{extract_file_name_minus_extension(file_name)}.csv"
+    if output_filename is None:
+        output_filename = f"{extract_file_name_minus_extension(file_name)}.csv"
     sampled_data_frame.to_csv(output_filename)

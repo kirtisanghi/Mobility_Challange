@@ -6,14 +6,14 @@ from collections import defaultdict, deque
 import cv2
 import numpy as np
 
-from utility import (
+from .utility import (
     annotate_crossing_line,
     get_object_location_signs,
     is_object_in_polygon_area,
     is_object_going_up,
     is_object_going_down, annotate_object_bounding_box, annotate_detection_result
 )
-from constants import (
+from .constants import (
     TARGET_CLASS_LIST,
     VEHICLE_CLASS_MAP,
     GOING_DOWN,
