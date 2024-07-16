@@ -9,13 +9,17 @@ import numpy as np
 import pandas as pd
 import boto3
 from botocore.exceptions import ClientError
+from google.cloud.storage import Client, Blob, Bucket
 
 from .constants import (
     ANNOTATIONS_CONFIG,
     RED_RGB,
     GREEN_RGB,
     YELLOW_RGB,
-    SEQUENCE_TO_TIME_MAP
+    SEQUENCE_TO_TIME_MAP,
+    TEAM_GCP_PROJECT_ID,
+    TEAM_GCS_BUCKET,
+    OD_RAW_RESULTS_PATH
 )
 
 
@@ -250,3 +254,21 @@ class AmazonService:
         except ClientError as err:
             raise Exception(f"failed to created signed url for {object_key}\n{err}")
 
+
+def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool):
+    """
+    writes the provided dataframe in the given output
+    either in local disk or to gcs. It uses pre-defined
+    gcs bucket mentioned in the constant.py module. user
+    must authenticate to google cloud before running the
+    script with gcs push enabled
+    """
+    if to_gcs:
+        date = dt.date(dt.now())
+        blob_name = f"{OD_RAW_RESULTS_PATH}/{date}/{output_path}"
+        client = Client(project=TEAM_GCP_PROJECT_ID)
+        bucket = Bucket(client=client, name=TEAM_GCS_BUCKET)
+        blob = Blob(name=blob_name, bucket=bucket)
+        blob.upload_from_string(data_frame.to_csv(), 'text/csv')
+    else:
+        data_frame.to_csv(output_path)

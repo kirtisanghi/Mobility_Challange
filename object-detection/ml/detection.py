@@ -358,7 +358,7 @@ class Camera6164(DoubleLane):
 
 
 detection_class_map = {
-    "18th_Crs_BsStp_JN_FIX_1": Camera4935,
+    "git dif": Camera4935,
     "18th_Crs_BsStp_JN_FIX_2": Camera4936,
     "18th_Crs_Bus_Stop_FIX_1": Camera4895,
     "Ayyappa_Temple_FIX_1": Camera6645,
