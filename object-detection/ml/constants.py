@@ -51,6 +51,33 @@ GOING_DOWN = "Going Down"
 GOING_LEFT = "Going Left"
 GOING_RIGHT = "Going Right"
 
+# with resect to the leader board camera view of
+# Stn_HD_1, following directions are coded with
+# along with A, B, C, D, E, F (G and H if application)
+INCOMING_DOWN = "Incoming Down"
+INCOMING_UP = "Incoming Up"
+OUTGOING_DOWN = "Outgoing Down"
+OUTGOING_UP = "Outgoing Up"
+INCOMING_LEFT = "Incoming Left"
+INCOMING_RIGHT = "Incoming Right"
+OUTGOING_LEFT = "Outgoing Left"
+OUTGOING_RIGHT = "Outgoing Right"
+
+ALL_POSSIBLE_DIRECTIONS = [
+    (INCOMING_LEFT, OUTGOING_UP),  # BC
+    (INCOMING_LEFT, OUTGOING_RIGHT),  # BE
+    (INCOMING_LEFT, OUTGOING_DOWN),  # BG
+    (INCOMING_UP, OUTGOING_RIGHT),  # DE
+    (INCOMING_UP, OUTGOING_LEFT),  # DA
+    (INCOMING_UP, OUTGOING_DOWN),  # DH
+    (INCOMING_RIGHT, OUTGOING_LEFT),  # FA
+    (INCOMING_RIGHT, OUTGOING_UP),  # FC
+    (INCOMING_RIGHT, OUTGOING_DOWN),  # FH
+    (INCOMING_DOWN, OUTGOING_UP),  # GA
+    (INCOMING_DOWN, OUTGOING_LEFT),  # GC
+    (INCOMING_DOWN, OUTGOING_RIGHT),  # GE
+]
+
 SEQUENCE_TO_TIME_MAP = {
     "000": "07:30:00",
     "001": "07:45:00",
