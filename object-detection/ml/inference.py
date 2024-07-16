@@ -15,6 +15,7 @@ from .utility import (
     sample_and_aggregate_data,
     construct_timestamp_from_file_name,
     is_colab_env,
+    save_output,
     draw_grid_with_coordinates
 )
 from .constants import (
@@ -27,19 +28,32 @@ from .detection import (
 )
 
 
-def detect_and_track_with_local_file(video_path: str, output_path: str = None):
+def detect_and_track_with_local_file(video_path: str, output_path: str = None, push_to_gcs: bool = False):
     """ wrapper to trigger object detection using local video file """
     file_name = extract_file_name(video_path)
-    detect_and_track(video_path, file_name, output_path)
+    if output_path is None:
+        output_path = f"{extract_file_name_minus_extension(file_name)}.csv"
+    sampled_data_frame = detect_and_track(video_path, file_name)
+
+    # save the dataframes now
+    save_output(sampled_data_frame, output_path, push_to_gcs)
 
 
-def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path: str = None):
+def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path: str = None, push_to_gcs: bool = False):
     """ wrapper to trigger object detection using video file from s3 bucket """
     file_name = extract_file_name(object_key)
-    detect_and_track(signed_url, file_name, output_path)
+    if output_path is None:
+        output_path = f"{extract_file_name_minus_extension(file_name)}.csv"
+    else:
+        output_path_without_extension = output_path.removesuffix(".csv")
+        output_path = f"{output_path_without_extension}-{extract_file_name_minus_extension(file_name)}.csv"
+
+    sampled_data_frame = detect_and_track(signed_url, file_name)
+    # save the dataframes now
+    save_output(sampled_data_frame, output_path, push_to_gcs)
 
 
-def detect_and_track(video_path: str, file_name: str, output_filename: str = None):
+def detect_and_track(video_path: str, file_name: str):
     """
     initiate object detection and tracking using yolo
     model for the provided video path
@@ -173,9 +187,5 @@ def detect_and_track(video_path: str, file_name: str, output_filename: str = Non
     capture.release()
     cv2.destroyAllWindows()
 
-    # load the timeseries data into pandas dataframe
-    sampled_data_frame = sample_and_aggregate_data(detection_class_obj.detected_vehicles_time_series)
-
-    if output_filename is None:
-        output_filename = f"{extract_file_name_minus_extension(file_name)}.csv"
-    sampled_data_frame.to_csv(output_filename)
+    # load the timeseries data into pandas dataframe and return the dataframe
+    return sample_and_aggregate_data(detection_class_obj.detected_vehicles_time_series, camera_name)

@@ -11,3 +11,4 @@ dependencies:
       - ultralytics
       - lapx
       - boto3
+      - google-cloud-storage

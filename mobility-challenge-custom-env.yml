@@ -10,3 +10,4 @@ dependencies:
       - notebook
       - lapx
       - boto3
+      - google-cloud-storage
