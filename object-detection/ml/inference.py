@@ -182,6 +182,6 @@ def detect_and_track(video_path: str, file_name: str, output_filename: str):
     cv2.destroyAllWindows()
 
     # load the timeseries data into pandas dataframe
-    sampled_data_frame = sample_and_aggregate_data(detection_class_obj.detected_vehicles_time_series)
+    sampled_data_frame = sample_and_aggregate_data(detection_class_obj.detected_vehicles_time_series, camera_name)
 
     sampled_data_frame.to_csv(output_filename)

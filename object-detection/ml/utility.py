@@ -189,7 +189,7 @@ def is_object_in_polygon_area(center_coordinates, polygon_points):
     return result >= 0
 
 
-def sample_and_aggregate_data(time_series_data: list):
+def sample_and_aggregate_data(time_series_data: list, camera_name: str):
     # load the inference data as pandas dataframe
     data_frame = pd.DataFrame(time_series_data)
 
@@ -208,6 +208,9 @@ def sample_and_aggregate_data(time_series_data: list):
 
     # reset the index
     grouped_and_sampled_df.reset_index(inplace=True)
+
+    # add a column having camera name
+    grouped_and_sampled_df["camera_name"] = camera_name
 
     return grouped_and_sampled_df
 
