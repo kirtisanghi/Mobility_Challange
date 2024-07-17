@@ -17,7 +17,15 @@ from .constants import (
     TARGET_CLASS_LIST,
     VEHICLE_CLASS_MAP,
     GOING_DOWN,
-    GOING_UP
+    GOING_UP,
+    INCOMING_UP,
+    INCOMING_DOWN,
+    INCOMING_RIGHT,
+    INCOMING_LEFT,
+    OUTGOING_DOWN,
+    OUTGOING_LEFT,
+    OUTGOING_UP,
+    OUTGOING_RIGHT
 )
 
 
@@ -357,8 +365,22 @@ class Camera6164(DoubleLane):
                 self._on_successful_tracking(frame, bounding_box, track_id, label, GOING_DOWN)
 
 
+class Camera5816(MultiLane):
+    camera_name = "Stn_HD_1"
+    camera_number = 5816
+    site_id = 478
+    directions = [
+        (INCOMING_LEFT, OUTGOING_UP),
+        (INCOMING_LEFT, OUTGOING_RIGHT),
+        (INCOMING_UP, OUTGOING_RIGHT),
+        (INCOMING_UP, OUTGOING_LEFT),
+        (INCOMING_RIGHT, OUTGOING_LEFT),
+        (INCOMING_RIGHT, OUTGOING_UP)
+    ]
+
+
 detection_class_map = {
-    "git dif": Camera4935,
+    "18th_Crs_BsStp_JN_FIX_1": Camera4935,
     "18th_Crs_BsStp_JN_FIX_2": Camera4936,
     "18th_Crs_Bus_Stop_FIX_1": Camera4895,
     "Ayyappa_Temple_FIX_1": Camera6645,
