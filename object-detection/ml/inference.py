@@ -174,7 +174,7 @@ def detect_and_track(video_path: str, file_name: str):
                 detection_class_obj.add_result_annotation(frame)
 
                 # Display the annotated frame
-                if not environmental_variable_is_present(ENV_VAR_TO_CHECK_LOCAL_PLATFORM):
+                if environmental_variable_is_present(ENV_VAR_TO_CHECK_LOCAL_PLATFORM):
                     cv2.imshow("Realtime Object Detection & Tracking", frame)
 
             # Break the loop if 'q' is pressed
