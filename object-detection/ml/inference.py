@@ -14,14 +14,15 @@ from .utility import (
     extract_file_name_minus_extension,
     sample_and_aggregate_data,
     construct_timestamp_from_file_name,
-    is_colab_env,
+    environmental_variable_is_present,
     save_output,
     draw_grid_with_coordinates
 )
 from .constants import (
     TARGET_CLASS_LIST,
     VEHICLE_CLASS_MAP,
-    DETECTABLE_CLASSES
+    DETECTABLE_CLASSES,
+    ENV_VAR_TO_CHECK_LOCAL_PLATFORM
 )
 from .detection import (
     detection_class_map
@@ -173,7 +174,7 @@ def detect_and_track(video_path: str, file_name: str):
                 detection_class_obj.add_result_annotation(frame)
 
                 # Display the annotated frame
-                if not is_colab_env():
+                if not environmental_variable_is_present(ENV_VAR_TO_CHECK_LOCAL_PLATFORM):
                     cv2.imshow("Realtime Object Detection & Tracking", frame)
 
             # Break the loop if 'q' is pressed
