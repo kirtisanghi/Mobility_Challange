@@ -28,6 +28,14 @@ def is_colab_env():
     return "COLAB_RELEASE_TAG" in os.environ
 
 
+def environmental_variable_is_present(env_var: str):
+    """
+    verifies if the provided variable is present in system
+    environmental variable
+    """
+    return env_var in os.environ
+
+
 def extract_file_name(full_file_path: str) -> str:
     """
     extracts the file name from the provided fully

@@ -10,6 +10,13 @@ RED_RGB = (0, 0, 255)
 YELLOW_RGB = (0, 255, 255)
 GREEN_RGB = (0, 255, 0)
 
+ENV_VAR_TO_CHECK_COLAB_PLATFORM = "COLAB_RELEASE_TAG"
+
+# Set this environmental variable when running in
+# local to show the detected frames with annotations
+# export RUNNING_IN_LOCAL=True
+ENV_VAR_TO_CHECK_LOCAL_PLATFORM = "RUNNING_IN_LOCAL"
+
 DETECTABLE_CLASSES = {
     # 0: "person",
     # 1: "bicycle",
