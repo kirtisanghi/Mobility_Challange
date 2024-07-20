@@ -20,13 +20,18 @@ from .constants import (
     TEAM_GCP_PROJECT_ID,
     TEAM_GCS_BUCKET,
     OD_RAW_RESULTS_PATH,
-    U_TURNS
+    U_TURNS,
+    COLAB_RELEASE_TAG,
+    FRAME_COL,
+    TIMESTAMP_COL,
+    CAMERA_NAME_COL,
+    TURNING_PATTERN_COL
 )
 
 
 def is_colab_env():
     """ verifies if the runtime environment is associated to collab """
-    return "COLAB_RELEASE_TAG" in os.environ
+    return COLAB_RELEASE_TAG in os.environ
 
 
 def environmental_variable_is_present(env_var: str):
@@ -217,25 +222,33 @@ def sample_and_aggregate_data(time_series_data: list, camera_name: str):
     data_frame = pd.DataFrame(time_series_data)
 
     # drop frame column
-    data_frame.drop(columns=["frame"], inplace=True)
+    data_frame.drop(columns=[FRAME_COL], inplace=True)
 
     # convert timestamp column into datetime type
-    data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
+    data_frame[TIMESTAMP_COL] = pd.to_datetime(data_frame[TIMESTAMP_COL])
 
     # set timestamp column as the index
-    data_frame.set_index("timestamp", inplace=True)
+    data_frame.set_index(TIMESTAMP_COL, inplace=True)
 
     # group the dataframe by direction and resample the dataframe
     # to aggregate all the numerical columns over 1 min interval
-    grouped_and_sampled_df = data_frame.groupby("direction").resample("1min").sum(numeric_only=True)
+    grouped_and_sampled_df = data_frame.groupby(TIMESTAMP_COL).resample("1min").sum(numeric_only=True)
 
     # reset the index
     grouped_and_sampled_df.reset_index(inplace=True)
 
     # add a column having camera name
-    grouped_and_sampled_df["camera_name"] = camera_name
+    grouped_and_sampled_df[CAMERA_NAME_COL] = camera_name
 
     return grouped_and_sampled_df
+
+
+def include_leaderboard_submission_guidelines(data_frame: pd.DataFrame):
+    # drop the camera name and timestamp column
+    data_frame.drop(columns=[CAMERA_NAME_COL, TIMESTAMP_COL], inplace=True)
+
+    # group by turning points and aggregate numerical column
+    return data_frame.groupby(TURNING_PATTERN_COL).sum(numeric_only=True)
 
 
 class AmazonService:

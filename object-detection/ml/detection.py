@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
+from typing import Mapping, List
 
 import cv2
 import numpy as np
@@ -27,6 +28,9 @@ from .constants import (
     POLYGON_1,
     POLYGON_2,
     POLYGON_3,
+    TURNING_PATTERN_COL,
+    FRAME_COL,
+    TIMESTAMP_COL
 )
 
 
@@ -90,9 +94,9 @@ class ObjectDetectionAndTracking(ABC):
     def append_to_time_series(self, timestamp, frame_number):
         for key, value in self.detected_vehicles_in_frame.items():
             row_data = {
-                "direction": key,
-                "timestamp": timestamp,
-                "frame": frame_number,
+                TURNING_PATTERN_COL: key,
+                TIMESTAMP_COL: timestamp,
+                FRAME_COL: frame_number,
                 **value
             }
             self.detected_vehicles_time_series.append(row_data)
@@ -151,7 +155,7 @@ class DoubleLane(ObjectDetectionAndTracking):
     visibility to a double lane, with vehicles going in
     the opposite direction with respect to both lanes
     """
-    directions: list[str]
+    directions: List[str]
 
     def __init__(self):
         self.left_polygon = np.array([], np.int32)
@@ -192,7 +196,11 @@ class MultiLane(ObjectDetectionAndTracking):
     visibility to a multiple lanes, with vehicles going in
     all the direction.
     """
-    directions: list[tuple]
+    # list of possible turns with starting and ending direction
+    # in the format "INCOMING_LEFT->OUTGOING_RIGHT"
+    directions: List[str]
+    # map of possible turns with its alias for the specific camera
+    directions_map: Mapping[str, str]
     # keeps a track history of all the detected vehicles
     # by its track id and the direction it has crossed
     # direction_track_history = {
@@ -264,6 +272,16 @@ class MultiLane(ObjectDetectionAndTracking):
     @abstractmethod
     def update_polygon_track_history(self, track_id, center_coordinates):
         pass
+
+    def append_to_time_series(self, timestamp, frame_number):
+        for key, value in self.detected_vehicles_in_frame.items():
+            row_data = {
+                TURNING_PATTERN_COL: self.directions_map.get(key),
+                TIMESTAMP_COL: timestamp,
+                FRAME_COL: frame_number,
+                **value
+            }
+            self.detected_vehicles_time_series.append(row_data)
 
 
 class Camera4935(SingleLane):
@@ -509,6 +527,14 @@ class Camera5816(MultiLane):
     FC = f"{INCOMING_RIGHT}->{OUTGOING_UP}"
     FA = f"{INCOMING_RIGHT}->{OUTGOING_LEFT}"
     directions = [BC, BE, DE, DA, FC, FA]
+    directions_map = {
+        BC: "BC",
+        BE: "BE",
+        DE: "DE",
+        DA: "DA",
+        FC: "FC",
+        FA: "FA"
+    }
 
     def __init__(self):
         super().__init__()

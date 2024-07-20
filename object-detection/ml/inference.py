@@ -16,13 +16,16 @@ from .utility import (
     construct_timestamp_from_file_name,
     environmental_variable_is_present,
     save_output,
+    include_leaderboard_submission_guidelines,
     draw_grid_with_coordinates
 )
 from .constants import (
     TARGET_CLASS_LIST,
     VEHICLE_CLASS_MAP,
     DETECTABLE_CLASSES,
-    RUNNING_IN_LOCAL, SHOW_DETECTION_ANNOTATIONS
+    RUNNING_IN_LOCAL,
+    SHOW_DETECTION_ANNOTATIONS,
+    LEADER_BOARD_ENV
 )
 from .detection import (
     detection_class_map, MultiLane
@@ -35,6 +38,9 @@ def detect_and_track_with_local_file(video_path: str, output_path: str = None, p
     if output_path is None:
         output_path = f"{extract_file_name_minus_extension(file_name)}.csv"
     sampled_data_frame = detect_and_track(video_path, file_name)
+
+    if environmental_variable_is_present(LEADER_BOARD_ENV):
+        sampled_data_frame = include_leaderboard_submission_guidelines(sampled_data_frame)
 
     # save the dataframes now
     save_output(sampled_data_frame, output_path, push_to_gcs)
