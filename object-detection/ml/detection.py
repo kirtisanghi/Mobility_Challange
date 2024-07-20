@@ -28,6 +28,9 @@ from .constants import (
     POLYGON_1,
     POLYGON_2,
     POLYGON_3,
+    TURNING_PATTERN_COL,
+    FRAME_COL,
+    TIMESTAMP_COL
 )
 
 
@@ -91,9 +94,9 @@ class ObjectDetectionAndTracking(ABC):
     def append_to_time_series(self, timestamp, frame_number):
         for key, value in self.detected_vehicles_in_frame.items():
             row_data = {
-                "Turning Patterns": key,
-                "Timestamp": timestamp,
-                "Frame": frame_number,
+                TURNING_PATTERN_COL: key,
+                TIMESTAMP_COL: timestamp,
+                FRAME_COL: frame_number,
                 **value
             }
             self.detected_vehicles_time_series.append(row_data)
@@ -273,9 +276,9 @@ class MultiLane(ObjectDetectionAndTracking):
     def append_to_time_series(self, timestamp, frame_number):
         for key, value in self.detected_vehicles_in_frame.items():
             row_data = {
-                "Turning Patterns": self.directions_map.get(key),
-                "Timestamp": timestamp,
-                "Frame": frame_number,
+                TURNING_PATTERN_COL: self.directions_map.get(key),
+                TIMESTAMP_COL: timestamp,
+                FRAME_COL: frame_number,
                 **value
             }
             self.detected_vehicles_time_series.append(row_data)

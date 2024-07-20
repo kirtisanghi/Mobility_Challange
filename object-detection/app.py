@@ -25,8 +25,10 @@ folder with 2 required arguments
 
 python app.py Stn_HD_1.mp4 Output_Turning_Patterns.csv
 """
+import os
 import sys
 from ml.main import main as main_prog
+from ml.constants import LEADER_BOARD_ENV
 
 
 def main():
@@ -48,6 +50,10 @@ def main():
 
     print(f"Running Object Detection on video present at \"{video_name}\"")
     print(f"Detection results will be stored at \"{output_file_name}\"")
+
+    # setting this environment variable to claim the execution of
+    # this script for leaderboard evaluation
+    os.environ[LEADER_BOARD_ENV] = "True"
     sys.argv = [
         file_name,
         "--input-path",

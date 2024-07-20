@@ -19,6 +19,17 @@ RUNNING_IN_LOCAL = "RUNNING_IN_LOCAL"
 # Set this env variable to show detection annotations
 # export SHOW_DETECTION_ANNOTATIONS=True
 SHOW_DETECTION_ANNOTATIONS = "SHOW_DETECTION_ANNOTATIONS"
+# environmental variable to claim the script execution
+# for leader board evaluation.
+# NOTE: this env var will be set internally
+LEADER_BOARD_ENV = "LEADER_BOARD_ENV"
+
+# define the variable for result dataframe columns
+TURNING_PATTERN_COL = "Turning Pattern"
+FRAME_COL = "Frame"
+TIMESTAMP_COL = "Timestamp"
+CAMERA_NAME_COL = "Camera Name"
+
 
 DETECTABLE_CLASSES = {
     # 0: "person",
