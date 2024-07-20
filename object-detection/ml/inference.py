@@ -22,10 +22,10 @@ from .constants import (
     TARGET_CLASS_LIST,
     VEHICLE_CLASS_MAP,
     DETECTABLE_CLASSES,
-    ENV_VAR_TO_CHECK_LOCAL_PLATFORM
+    RUNNING_IN_LOCAL, SHOW_DETECTION_ANNOTATIONS
 )
 from .detection import (
-    detection_class_map
+    detection_class_map, MultiLane
 )
 
 
@@ -102,7 +102,8 @@ def detect_and_track(video_path: str, file_name: str):
             # add grid to the image frame
             # frame = draw_grid_with_coordinates(frame)
 
-            detection_class_obj.add_detection_annotation(frame)
+            if environmental_variable_is_present(SHOW_DETECTION_ANNOTATIONS):
+                detection_class_obj.add_detection_annotation(frame)
 
             # every frame gives a single result, however we use a
             # for loop here to make the code readable
@@ -144,26 +145,21 @@ def detect_and_track(video_path: str, file_name: str):
                         label = VEHICLE_CLASS_MAP.get(label)
                         obj_identifier = f"{track_id}: {label}"
                         center_coordinates = calculate_center_of_bounding_box(bounding_box)
-                        track = detection_class_obj.track_history[track_id]
-                        track.append(center_coordinates)
-
+                        detection_class_obj.update_track_history(track_id, center_coordinates)
+                        if isinstance(detection_class_obj, MultiLane):
+                            detection_class_obj.update_polygon_track_history(track_id, center_coordinates)
                         annotate_object_center(frame, obj_identifier, center_coordinates)
-
-                        if len(track) > 30:
-                            track.popleft()
 
                         if track_id in detection_class_obj.crossed_vehicles:
                             annotate_object_bounding_box(frame, bounding_box)
                         else:
-                            if len(track) >= 2:
-                                prev_center_coordinates = track[-2]
+                            if detection_class_obj.can_run_detection(track_id):
                                 detection_class_obj.track_object(
                                     frame,
                                     bounding_box,
                                     label,
                                     track_id,
-                                    center_coordinates,
-                                    prev_center_coordinates
+                                    center_coordinates
                                 )
 
                 # add the object detection result for current frame
@@ -174,7 +170,7 @@ def detect_and_track(video_path: str, file_name: str):
                 detection_class_obj.add_result_annotation(frame)
 
                 # Display the annotated frame
-                if environmental_variable_is_present(ENV_VAR_TO_CHECK_LOCAL_PLATFORM):
+                if environmental_variable_is_present(RUNNING_IN_LOCAL):
                     cv2.imshow("Realtime Object Detection & Tracking", frame)
 
             # Break the loop if 'q' is pressed

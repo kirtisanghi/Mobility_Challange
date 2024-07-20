@@ -19,7 +19,8 @@ from .constants import (
     SEQUENCE_TO_TIME_MAP,
     TEAM_GCP_PROJECT_ID,
     TEAM_GCS_BUCKET,
-    OD_RAW_RESULTS_PATH
+    OD_RAW_RESULTS_PATH,
+    U_TURNS
 )
 
 
@@ -105,8 +106,12 @@ def calculate_slope_and_intercept(starting_point, ending_point):
     """
     x1, y1 = starting_point
     x2, y2 = ending_point
-    slope = (y2 - y1) / (x2 - x1)
-    intercept = y1 - (slope * x1)
+    if x2 == x1:
+        slope = float("inf")
+        intercept = None
+    else:
+        slope = (y2 - y1) / (x2 - x1)
+        intercept = y1 - (slope * x1)
     return slope, intercept
 
 
@@ -171,8 +176,14 @@ def get_object_location_signs(start_coordinates, end_coordinates, cur_center_coo
     slope, intercept = calculate_slope_and_intercept(start_coordinates, end_coordinates)
     cur_x_center, cur_y_center = cur_center_coordinates
     prev_x_center, prev_y_center = prev_center_coordinates
-    current_sign = np.sign(cur_y_center - (slope * cur_x_center + intercept))
-    previous_sign = np.sign(prev_y_center - (slope * prev_x_center + intercept))
+
+    # handle vertical lines also
+    if slope == float("inf"):
+        current_sign = np.sign(cur_x_center - start_coordinates[0])
+        previous_sign = np.sign(prev_x_center - start_coordinates[0])
+    else:
+        current_sign = np.sign(cur_y_center - (slope * cur_x_center + intercept))
+        previous_sign = np.sign(prev_y_center - (slope * prev_x_center + intercept))
     return current_sign, previous_sign
 
 
@@ -280,3 +291,8 @@ def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool):
         blob.upload_from_string(data_frame.to_csv(), 'text/csv')
     else:
         data_frame.to_csv(output_path)
+
+
+def is_u_turn(directions):
+    if (directions[0], directions[1]) in U_TURNS:
+        return True
