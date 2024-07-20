@@ -232,7 +232,7 @@ def sample_and_aggregate_data(time_series_data: list, camera_name: str):
 
     # group the dataframe by direction and resample the dataframe
     # to aggregate all the numerical columns over 1 min interval
-    grouped_and_sampled_df = data_frame.groupby(TIMESTAMP_COL).resample("1min").sum(numeric_only=True)
+    grouped_and_sampled_df = data_frame.groupby(TURNING_PATTERN_COL).resample("1min").sum(numeric_only=True)
 
     # reset the index
     grouped_and_sampled_df.reset_index(inplace=True)
