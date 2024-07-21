@@ -32,5 +32,5 @@ cd ../
 # shellcheck disable=SC2164
 cd Mobility_Challange/object-detection/
 
-python app.py Stn_HD_1.mp4 Output_Turning_Patterns.csv app.py
+python app.py Stn_HD_1.mp4 Output_Turning_Patterns.csv
 

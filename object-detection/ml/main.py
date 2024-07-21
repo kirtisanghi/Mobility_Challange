@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .inference import detect_and_track_with_local_file, detect_and_track_with_s3_file
 from .utility import AmazonService
