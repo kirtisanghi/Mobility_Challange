@@ -53,17 +53,9 @@ def main():
         # make sure an aws profile named hackathon is created
         aws = AmazonService("hackathon")
         video_object_keys = aws.list_objects_with_prefix(prefix=s3_input_path_prefix)
-        signed_urls = [aws.generate_signed_url(object_key) for object_key in video_object_keys]
-
-        futures_to_detection = list()
-        with ThreadPoolExecutor(max_workers=5, thread_name_prefix="ml-executor-") as executor:
-            for object_key, signed_url in zip(video_object_keys, signed_urls):
-                futures_to_detection.append(
-                    executor.submit(
-                        detect_and_track_with_s3_file, object_key, signed_url, output_file_name, push_to_gcs))
-            for future in as_completed(futures_to_detection):
-                result = future.result()
-                print(f"future completed with result {result}")
+        for object_key in video_object_keys:
+            signed_url = aws.generate_signed_url(object_key)
+            detect_and_track_with_s3_file(object_key, signed_url, output_file_name, push_to_gcs)
 
     print("object detection script execution completed")
 
