@@ -12,7 +12,6 @@ from botocore.exceptions import ClientError
 from google.cloud.storage import Client, Blob, Bucket
 
 from .constants import (
-    ANNOTATIONS_CONFIG,
     RED_RGB,
     GREEN_RGB,
     YELLOW_RGB,
@@ -50,7 +49,7 @@ def extract_file_name(full_file_path: str) -> str:
     return os.path.basename(full_file_path)
 
 
-def load_annotations_config(config_path: str = ANNOTATIONS_CONFIG):
+def load_annotations_config(config_path: str):
     """
     reads the annotation config file and loads
     yaml config into python dictionary

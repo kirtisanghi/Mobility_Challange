@@ -7,6 +7,8 @@ WORKDIR /object-detection
 COPY requirements.txt requirements.txt
 RUN pip install --user --requirement requirements.txt
 
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+
 RUN git clone https://github.com/ultralytics/ultralytics
 WORKDIR /object-detection/ultralytics
 RUN git reset --hard 2071776a3672eb835d7c56cfff22114707765ac
@@ -19,7 +21,7 @@ COPY app.py /application/
 COPY ml /application/ml/
 COPY models /application/models/
 
-ENTRYPOINT ["app.py"]
+ENTRYPOINT ["python"]
 
 #FROM nvidia/cuda:12.5.1-cudnn-devel-ubuntu20.04 as base
 #
