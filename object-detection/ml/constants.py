@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-ANNOTATIONS_CONFIG = "config/annotations.yaml"
 TEAM_GCP_PROJECT_ID = "mobility-challenge-2024"
 TEAM_GCP_PROJECT_NUMBER = 520718889029
 TEAM_GCS_BUCKET = "path-protectors-dataset"

@@ -78,7 +78,7 @@ def detect_and_track(video_path: str, file_name: str):
 
     # Load the YOLOv8 model
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = YOLO("models/Best_DataClusterIEEEDataset_v0.1.pt", verbose=True).to(device)
+    model = YOLO("models/yolov8n-fine-tuned-v0.1.pt", verbose=True).to(device)
 
     # start capturing the video frames using opencv
     capture = cv2.VideoCapture(video_path)

@@ -16,11 +16,11 @@ As part of this challenge we are proposing a solution to detect the different ve
 
 ### Python Environment creation
 
-We are using `conda` to manage the python virtual environment. We can use different virtual environments when using pre-trained model vs fine-tuned model. `mobility-challenge-env.yml` consists the config for creating a conda env for running inference against pre-trained model and `mobility-challenge-custom-env.yml` consists the config for creating conda env for running inference against fine-tuned model
+We are using `conda` to manage the python virtual environment. We can use different virtual environments when using pre-trained model vs fine-tuned model. `python-env.yml` consists the config for creating conda env for running inference against fine-tuned model
 
 1. Create a conda env using the config yaml
 ```shell
-conda env create --file mobility-challenge-env.yml
+conda env create --file python-env.yml
 ```
 
 2. Activate the conda env
