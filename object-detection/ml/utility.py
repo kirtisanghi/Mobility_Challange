@@ -66,8 +66,11 @@ def extract_camera_name(file_name: str) -> str:
     extracts the camera name identifier from the video
     file name
     """
-    splitted_items = file_name.split("_time_")
-    return splitted_items[0]
+    file_name = file_name.removesuffix(".mp4")
+    if "_time_" in file_name:
+        splitted_items = file_name.split("_time_")
+        return splitted_items[0]
+    return file_name
 
 
 def extract_file_name_minus_extension(file_name: str) -> str:
