@@ -68,7 +68,11 @@ def detect_and_track(video_path: str, file_name: str):
     # extract the camera name (unique identifier) from
     # the video file name
     camera_name = extract_camera_name(file_name)
-    video_start_time_stamp = construct_timestamp_from_file_name(file_name)
+    if environmental_variable_is_present(LEADER_BOARD_ENV):
+        video_start_time_stamp = dt.now()
+    else:
+        video_start_time_stamp = construct_timestamp_from_file_name(file_name)
+
     try:
         detection_class = detection_class_map[camera_name]
     except KeyError:
