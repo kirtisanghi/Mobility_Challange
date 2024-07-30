@@ -24,7 +24,7 @@
 
 ## Dockerfile for gpu based object detection
 
-FROM nvidia/cuda:12.5.1-cudnn-devel-ubuntu20.04
+FROM nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
 
 MAINTAINER "Sandeep Upadhyay<sandeepupadhyay732@gmail.com>"
 
