@@ -25,7 +25,8 @@ from .constants import (
     DETECTABLE_CLASSES,
     RUNNING_IN_LOCAL,
     SHOW_DETECTION_ANNOTATIONS,
-    LEADER_BOARD_ENV
+    LEADER_BOARD_ENV,
+    TURNING_PATTERN_COL
 )
 from .detection import (
     detection_class_map, MultiLane
@@ -194,5 +195,9 @@ def detect_and_track(video_path: str, file_name: str):
     capture.release()
     cv2.destroyAllWindows()
 
+    grouping_key = detection_class_obj.grouping_key
+    if environmental_variable_is_present(LEADER_BOARD_ENV):
+        grouping_key = [TURNING_PATTERN_COL]
+
     # load the timeseries data into pandas dataframe and return the dataframe
-    return sample_and_aggregate_data(detection_class_obj.detected_vehicles_time_series, camera_name)
+    return sample_and_aggregate_data(detection_class_obj.detected_vehicles_time_series, camera_name, grouping_key)

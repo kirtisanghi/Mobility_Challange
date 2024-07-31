@@ -49,8 +49,11 @@ def main():
         if s3_input_path_prefix == "":
             exit(f"[error]: please provide a s3 bucket prefix")
 
-        # make sure an aws profile named hackathon is created
-        aws = AmazonService("hackathon")
+        # make sure to set required environmental variables
+        # 1. configure aws profile and set an env var AWS_PROFILE=${profileName}
+        # 2. set following env variable - AWS_ACCESS_KEY_ID,
+        #    AWS_SECRET_ACCESS_KEY and AWS_DEFAULT_REGION
+        aws = AmazonService()
         video_object_keys = aws.list_objects_with_prefix(prefix=s3_input_path_prefix)
         for object_key in video_object_keys:
             signed_url = aws.generate_signed_url(object_key)
