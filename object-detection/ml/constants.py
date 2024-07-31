@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-TEAM_GCP_PROJECT_ID = "mobility-challenge-2024"
-TEAM_GCP_PROJECT_NUMBER = 520718889029
-TEAM_GCS_BUCKET = "path-protectors-dataset"
+TEAM_GCP_PROJECT_ID = "mobility-challenge-2k24"
+TEAM_GCP_PROJECT_NUMBER = 587663586906
+TEAM_GCS_BUCKET = "path-protectors-datalake"
 OD_RAW_RESULTS_PATH = "object-detection/raw"
 
 RED_RGB = (0, 0, 255)
