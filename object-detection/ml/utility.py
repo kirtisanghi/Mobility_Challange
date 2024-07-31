@@ -254,11 +254,10 @@ def include_leaderboard_submission_guidelines(data_frame: pd.DataFrame):
 
 
 class AmazonService:
-    def __init__(self, profile_name: str, s3_bucket: str = "ieee-dataport"):
+    def __init__(self, s3_bucket: str = "ieee-dataport"):
         self.bucket = s3_bucket
-        self.profile = profile_name
 
-        self.session = boto3.session.Session(profile_name=self.profile)
+        self.session = boto3.session.Session()
         self.client = self.session.client("s3")
 
     def list_objects_with_prefix(self, prefix: str) -> list[str]:
