@@ -35,7 +35,9 @@ from .constants import (
     TURNING_PATTERN_COL,
     FRAME_COL,
     TIMESTAMP_COL,
-    LEADER_BOARD_ENV
+    LEADER_BOARD_ENV,
+    VEHICLE_ENTRY_COL,
+    VEHICLE_EXIT_COL
 )
 
 
@@ -120,6 +122,9 @@ class SingleLane(ObjectDetectionAndTracking):
     """
     direction: str
 
+    # key(s) used to group the dataframe specifying direction
+    grouping_key: List[str] = [TURNING_PATTERN_COL]
+
     def __init__(self):
         self.line_start = ()
         self.line_end = ()
@@ -161,6 +166,9 @@ class DoubleLane(ObjectDetectionAndTracking):
     the opposite direction with respect to both lanes
     """
     directions: List[str]
+
+    # key(s) used to group the dataframe specifying direction
+    grouping_key: List[str] = [TURNING_PATTERN_COL]
 
     def __init__(self):
         self.left_polygon = np.array([], np.int32)
@@ -215,6 +223,9 @@ class MultiLane(ObjectDetectionAndTracking):
     # keeps a track history of the polygon area the object
     # is detected in
     polygon_track_history = defaultdict(lambda: set())
+
+    # key(s) used to group the dataframe specifying direction
+    grouping_key: List[str] = [VEHICLE_ENTRY_COL, VEHICLE_EXIT_COL]
 
     def __init__(self):
         self.l1_start = ()
@@ -281,11 +292,16 @@ class MultiLane(ObjectDetectionAndTracking):
     def append_to_time_series(self, timestamp, frame_number):
         for key, value in self.detected_vehicles_in_frame.items():
             if environmental_variable_is_present(LEADER_BOARD_ENV):
-                turning_pattern = self.directions_map.get(key)
+                row_data = {
+                    TURNING_PATTERN_COL: self.directions_map.get(key)
+                }
             else:
-                turning_pattern = key
-            row_data = {
-                TURNING_PATTERN_COL: turning_pattern,
+                entry_direction, exit_direction = key.split("->")
+                row_data = {
+                    VEHICLE_ENTRY_COL: entry_direction,
+                    VEHICLE_EXIT_COL: exit_direction
+                }
+            row_data |= {
                 TIMESTAMP_COL: timestamp,
                 FRAME_COL: frame_number,
                 **value

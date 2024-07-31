@@ -25,6 +25,8 @@ LEADER_BOARD_ENV = "LEADER_BOARD_ENV"
 
 # define the variable for result dataframe columns
 TURNING_PATTERN_COL = "Turning Pattern"
+VEHICLE_ENTRY_COL = "Vehicle Entry"
+VEHICLE_EXIT_COL = "Vehicle Exit"
 FRAME_COL = "Frame"
 TIMESTAMP_COL = "Timestamp"
 CAMERA_NAME_COL = "Camera Name"

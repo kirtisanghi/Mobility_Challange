@@ -219,7 +219,7 @@ def is_object_in_polygon_area(center_coordinates, polygon_points):
     return result >= 0
 
 
-def sample_and_aggregate_data(time_series_data: list, camera_name: str):
+def sample_and_aggregate_data(time_series_data: list, camera_name: str, grouping_key: list):
     # load the inference data as pandas dataframe
     data_frame = pd.DataFrame(time_series_data)
 
@@ -234,7 +234,7 @@ def sample_and_aggregate_data(time_series_data: list, camera_name: str):
 
     # group the dataframe by direction and resample the dataframe
     # to aggregate all the numerical columns over 1 min interval
-    grouped_and_sampled_df = data_frame.groupby(TURNING_PATTERN_COL).resample("1min").sum(numeric_only=True)
+    grouped_and_sampled_df = data_frame.groupby(grouping_key).resample("1min").sum(numeric_only=True)
 
     # reset the index
     grouped_and_sampled_df.reset_index(inplace=True)
