@@ -288,7 +288,7 @@ class AmazonService:
             raise Exception(f"failed to created signed url for {object_key}\n{err}")
 
 
-def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool):
+def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool, index: str):
     """
     writes the provided dataframe in the given output
     either in local disk or to gcs. It uses pre-defined
@@ -297,8 +297,7 @@ def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool):
     script with gcs push enabled
     """
     if to_gcs:
-        date = dt.date(dt.now())
-        blob_name = f"{OD_RAW_RESULTS_PATH}/{date}/{output_path}"
+        blob_name = f"{OD_RAW_RESULTS_PATH}/{index}/{output_path}"
         client = Client(project=TEAM_GCP_PROJECT_ID)
         bucket = Bucket(client=client, name=TEAM_GCS_BUCKET)
         blob = Blob(name=blob_name, bucket=bucket)

@@ -38,13 +38,13 @@ def detect_and_track_with_local_file(video_path: str, output_path: str = None, p
     file_name = extract_file_name(video_path)
     if output_path is None:
         output_path = f"{extract_file_name_minus_extension(file_name)}.csv"
-    sampled_data_frame = detect_and_track(video_path, file_name)
+    camera_name, sampled_data_frame = detect_and_track(video_path, file_name)
 
     if environmental_variable_is_present(LEADER_BOARD_ENV):
         sampled_data_frame = include_leaderboard_submission_guidelines(sampled_data_frame)
 
     # save the dataframes now
-    save_output(sampled_data_frame, output_path, push_to_gcs)
+    save_output(sampled_data_frame, output_path, push_to_gcs, camera_name)
 
 
 def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path: str = None, push_to_gcs: bool = False):
@@ -56,9 +56,9 @@ def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path:
         output_path_without_extension = output_path.removesuffix(".csv")
         output_path = f"{output_path_without_extension}-{extract_file_name_minus_extension(file_name)}.csv"
 
-    sampled_data_frame = detect_and_track(signed_url, file_name)
+    camera_name, sampled_data_frame = detect_and_track(signed_url, file_name)
     # save the dataframes now
-    save_output(sampled_data_frame, output_path, push_to_gcs)
+    save_output(sampled_data_frame, output_path, push_to_gcs, camera_name)
 
 
 def detect_and_track(video_path: str, file_name: str):
@@ -200,4 +200,8 @@ def detect_and_track(video_path: str, file_name: str):
         grouping_key = [TURNING_PATTERN_COL]
 
     # load the timeseries data into pandas dataframe and return the dataframe
-    return sample_and_aggregate_data(detection_class_obj.detected_vehicles_time_series, camera_name, grouping_key)
+    return camera_name, sample_and_aggregate_data(
+        detection_class_obj.detected_vehicles_time_series,
+        camera_name,
+        grouping_key
+    )
