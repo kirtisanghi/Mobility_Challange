@@ -49,23 +49,23 @@ class ObjectDetectionAndTracking(ABC):
     camera_number: int
     site_id: int
 
-    # this keeps track of the path covered by
-    # each detected object by storing the center
-    # point of its bounding box.
-    track_history = defaultdict(lambda: deque())
-
-    # stores the track id of the vehicles which
-    # are marked as tracked
-    crossed_vehicles = list()
-    # keeps the map of counter of detected vehicles
-    # in each track by the vehicle type
-    detected_vehicles = dict()
-    # keeps the map of detected vehicles count within
-    # each frame by the vehicle type
-    detected_vehicles_in_frame = dict()
-    # keeps the time series data of the detected vehicles
-    # by each frame and vehicle type throughout the video
-    detected_vehicles_time_series = list()
+    def __init__(self):
+        # this keeps track of the path covered by
+        # each detected object by storing the center
+        # point of its bounding box.
+        self.track_history = defaultdict(lambda: deque())
+        # stores the track id of the vehicles which
+        # are marked as tracked
+        self.crossed_vehicles = list()
+        # keeps the map of counter of detected vehicles
+        # in each track by the vehicle type
+        self.detected_vehicles = dict()
+        # keeps the map of detected vehicles count within
+        # each frame by the vehicle type
+        self.detected_vehicles_in_frame = dict()
+        # keeps the time series data of the detected vehicles
+        # by each frame and vehicle type throughout the video
+        self.detected_vehicles_time_series = list()
 
     @abstractmethod
     def add_detection_annotation(self, frame):
@@ -126,6 +126,7 @@ class SingleLane(ObjectDetectionAndTracking):
     grouping_key: List[str] = [TURNING_PATTERN_COL]
 
     def __init__(self):
+        super().__init__()
         self.line_start = ()
         self.line_end = ()
         self.line_text = ()
@@ -171,6 +172,7 @@ class DoubleLane(ObjectDetectionAndTracking):
     grouping_key: List[str] = [TURNING_PATTERN_COL]
 
     def __init__(self):
+        super().__init__()
         self.left_polygon = np.array([], np.int32)
         self.right_polygon = np.array([], np.int32)
         self.l1_start = ()
@@ -228,6 +230,7 @@ class MultiLane(ObjectDetectionAndTracking):
     grouping_key: List[str] = [VEHICLE_ENTRY_COL, VEHICLE_EXIT_COL]
 
     def __init__(self):
+        super().__init__()
         self.l1_start = ()
         self.l1_end = ()
         self.l1_text = ()
