@@ -224,7 +224,7 @@ class MultiLane(ObjectDetectionAndTracking):
     direction_track_history = defaultdict(lambda: deque())
     # keeps a track history of the polygon area the object
     # is detected in
-    polygon_track_history = defaultdict(lambda: set())
+    polygon_track_history = defaultdict(lambda: list())
 
     # key(s) used to group the dataframe specifying direction
     grouping_key: List[str] = [VEHICLE_ENTRY_COL, VEHICLE_EXIT_COL]
@@ -641,7 +641,7 @@ class Camera5816(MultiLane):
         # with respect to all the lines
         prev_center_coord = self.track_history[track_id][-2]
         directions = self.direction_track_history[track_id]
-        polygons = list(self.polygon_track_history[track_id])
+        polygons = self.polygon_track_history[track_id]
         if self._is_incoming_up(cur_center_coord, prev_center_coord) and len(directions) == 0:
             if INCOMING_UP not in directions:
                 print(f"{track_id} _is_incoming_up")
@@ -755,7 +755,8 @@ class Camera5816(MultiLane):
         polygons = self._identity_polygon_area(center_coordinates)
         areas_undergone = self.polygon_track_history[track_id]
         for polygon in polygons:
-            areas_undergone.add(polygon)
+            if polygon not in areas_undergone:
+                areas_undergone.append(polygon)
 
     def _is_incoming_left(self, cur_center_coord, prev_center_coord):
         l1_cur_sign, l1_prev_sign = get_object_location_signs(
