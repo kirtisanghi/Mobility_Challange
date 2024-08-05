@@ -22,6 +22,15 @@ SHOW_DETECTION_ANNOTATIONS = "SHOW_DETECTION_ANNOTATIONS"
 # for leader board evaluation.
 # NOTE: this env var will be set internally
 LEADER_BOARD_ENV = "LEADER_BOARD_ENV"
+# Set this environmental variable to enable debug logs
+# export VERBOSE_LOGGING=True
+VERBOSE_LOGGING = "VERBOSE_LOGGING"
+# set this environmental variable to disable yolo verbose log
+# by default yolo verbose logs are enabled
+# export YOLO_VERBOSE=False
+YOLO_VERBOSE = "YOLO_VERBOSE"
+# detection logs file name
+LOG_FILE_NAME = "object-detection.log"
 
 # define the variable for result dataframe columns
 TURNING_PATTERN_COL = "Turning Pattern"

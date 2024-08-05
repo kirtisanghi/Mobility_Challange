@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+
+import logging
 from datetime import datetime as dt
 from datetime import timedelta as td
 import cv2
@@ -32,15 +34,21 @@ from .detection import (
     detection_class_map, MultiLane
 )
 
+# setup the logger
+logger = logging.getLogger(__name__)
+
 
 def detect_and_track_with_local_file(video_path: str, output_path: str = None, push_to_gcs: bool = False):
     """ wrapper to trigger object detection using local video file """
+    logger.debug("using local file for running object detection and tracking")
     file_name = extract_file_name(video_path)
     if output_path is None:
         output_path = f"{extract_file_name_minus_extension(file_name)}.csv"
+    logger.debug(f"Input File: {file_name}, Output File: {output_path}")
     camera_name, sampled_data_frame = detect_and_track(video_path, file_name)
 
     if environmental_variable_is_present(LEADER_BOARD_ENV):
+        logger.debug(f"constructing dataframe as per leaderboard guidelines")
         sampled_data_frame = include_leaderboard_submission_guidelines(sampled_data_frame)
 
     # save the dataframes now
@@ -49,6 +57,7 @@ def detect_and_track_with_local_file(video_path: str, output_path: str = None, p
 
 def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path: str = None, push_to_gcs: bool = False):
     """ wrapper to trigger object detection using video file from s3 bucket """
+    logger.debug("using file from s3 for running object detection and tracking")
     file_name = extract_file_name(object_key)
     if output_path is None:
         output_path = f"{extract_file_name_minus_extension(file_name)}.csv"
@@ -56,6 +65,7 @@ def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path:
         output_path_without_extension = output_path.removesuffix(".csv")
         output_path = f"{output_path_without_extension}-{extract_file_name_minus_extension(file_name)}.csv"
 
+    logger.debug(f"Input File: {file_name}, Output File: {output_path}")
     camera_name, sampled_data_frame = detect_and_track(signed_url, file_name)
     # save the dataframes now
     save_output(sampled_data_frame, output_path, push_to_gcs, camera_name)
@@ -69,6 +79,7 @@ def detect_and_track(video_path: str, file_name: str):
     # extract the camera name (unique identifier) from
     # the video file name
     camera_name = extract_camera_name(file_name)
+    logger.debug(f"Camera Name: {camera_name}")
     if environmental_variable_is_present(LEADER_BOARD_ENV):
         video_start_time_stamp = dt.now()
     else:
@@ -83,6 +94,7 @@ def detect_and_track(video_path: str, file_name: str):
 
     # Load the YOLOv8 model
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    logger.debug(f"Computation Device: {device}")
     model = YOLO("models/fine-tuned-yolov8-v0.1.pt").to(device)
 
     # start capturing the video frames using opencv
@@ -95,8 +107,8 @@ def detect_and_track(video_path: str, file_name: str):
         success, frame = capture.read()
 
         if success:
+            # get the current frame number
             frame_number = capture.get(cv2.CAP_PROP_POS_FRAMES)
-            print(f"Frame Number: {frame_number}")
 
             # retrieve the time passed since the beginning
             # of the video till current frame in millisecond
@@ -108,7 +120,7 @@ def detect_and_track(video_path: str, file_name: str):
 
             # Run object tracking using yolo model on the frame,
             # persisting tracks between frames
-            results = model.track(frame, conf=0.6, iou=0.5, persist=True,  classes=list(DETECTABLE_CLASSES.keys()))
+            results = model.track(frame, conf=0.6, iou=0.5, persist=True, classes=list(DETECTABLE_CLASSES.keys()))
 
             # add grid to the image frame
             # frame = draw_grid_with_coordinates(frame)
@@ -129,7 +141,7 @@ def detect_and_track(video_path: str, file_name: str):
                 # within the frame, in that case `is_track` variable
                 # will be set to false
                 if result.boxes.is_track is False:
-                    print(f"no objects detected in {frame_number} frame")
+                    logger.info(f"Frame Number: {frame_number}, No Objects Detected")
                     continue
                 trained_object_map = result.names
                 if torch.cuda.is_available():
@@ -142,6 +154,8 @@ def detect_and_track(video_path: str, file_name: str):
                     scores = result.boxes.conf.cpu()
                     labels = result.boxes.cls.int().cpu().tolist()
                     track_ids = result.boxes.id.int().cpu().tolist()
+
+                logger.info(f"Frame Number: {frame_number}, Objects Detected: {len(labels)}")
 
                 # Visualize the results on the frame
                 # annotated_frame = result.plot()
@@ -162,6 +176,7 @@ def detect_and_track(video_path: str, file_name: str):
                         annotate_object_center(frame, obj_identifier, center_coordinates)
 
                         if track_id in detection_class_obj.crossed_vehicles:
+                            logger.debug(f"object {label}({track_id}) already detected and annotated")
                             annotate_object_bounding_box(frame, bounding_box)
                         else:
                             if detection_class_obj.can_run_detection(track_id):
@@ -172,6 +187,8 @@ def detect_and_track(video_path: str, file_name: str):
                                     track_id,
                                     center_coordinates
                                 )
+                            else:
+                                logger.debug(f"object {label}({track_id}) not detected in enough frames(2)")
 
                 # add the object detection result for current frame
                 # to time series
@@ -198,10 +215,12 @@ def detect_and_track(video_path: str, file_name: str):
     grouping_key = detection_class_obj.grouping_key
     if environmental_variable_is_present(LEADER_BOARD_ENV):
         grouping_key = [TURNING_PATTERN_COL]
+    logger.debug(f"timeseries data frame will be grouped using {grouping_key}")
 
     # load the timeseries data into pandas dataframe and return the dataframe
-    return camera_name, sample_and_aggregate_data(
+    sampled_and_aggregated_data = sample_and_aggregate_data(
         detection_class_obj.detected_vehicles_time_series,
         camera_name,
         grouping_key
     )
+    return camera_name, sampled_and_aggregated_data

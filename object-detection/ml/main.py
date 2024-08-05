@@ -1,8 +1,29 @@
 #!/usr/bin/env python
+
 import argparse
+import logging
+import sys
+from datetime import datetime as dt
 
 from .inference import detect_and_track_with_local_file, detect_and_track_with_s3_file
-from .utility import AmazonService
+from .utility import AmazonService, environmental_variable_is_present
+from .constants import VERBOSE_LOGGING, LOG_FILE_NAME
+
+# setup the logger configurations
+log_level = logging.INFO
+file_handler = logging.FileHandler(filename=LOG_FILE_NAME, mode="w")
+stream_handler = logging.StreamHandler(stream=sys.stdout)
+handlers = [stream_handler]
+if environmental_variable_is_present(VERBOSE_LOGGING):
+    log_level = logging.DEBUG
+    handlers.append(file_handler)
+
+logging.basicConfig(
+    level=log_level,
+    handlers=[stream_handler, file_handler],
+    format='[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # define input argument for the application
 parser = argparse.ArgumentParser(description="Object Detection and Tracking Script")
@@ -27,7 +48,8 @@ parser.add_argument("--push-to-gcs",
 def main():
     args = parser.parse_args()
 
-    print("object detection script execution starting")
+    starting_time = dt.now()
+    logger.info("object detection script execution starting")
 
     output_file_name = None
     if args.output_file_name is not None:
@@ -59,7 +81,9 @@ def main():
             signed_url = aws.generate_signed_url(object_key)
             detect_and_track_with_s3_file(object_key, signed_url, output_file_name, push_to_gcs)
 
-    print("object detection script execution completed")
+    ending_time = dt.now()
+    execution_time = ending_time - starting_time
+    logger.info(f"object detection script execution completed after {execution_time.seconds} seconds")
 
 
 if __name__ == "__main__":
