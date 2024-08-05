@@ -839,6 +839,39 @@ class Camera5816(MultiLane):
         return areas
 
 
+class Camera2853(SingleLane):
+    camera_name = "Kuvempu_Circle_FIX_1"
+    camera_number = 2853
+    site_id = 1354
+    direction = GOING_DOWN
+
+    def __init__(self):
+        super().__init__()
+        self.line_start = (300, 100)
+        self.line_end = (1700, 850)
+        self.line_text = (1500, 750)
+        self.result_origin = (100, 100)
+        self.result_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+
+class Camera2854(SingleLane):
+    camera_name = "Kuvempu_Circle_FIX_2"
+    camera_number = 2854
+    site_id = 1354
+    direction = GOING_UP
+
+    def __init__(self):
+        super().__init__()
+        self.line_start = (50, 400)
+        self.line_end = (1600, 100)
+        self.line_text = (100, 400)
+        self.result_origin = (100, 100)
+        self.result_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
 detection_class_map = {
     "18th_Crs_BsStp_JN_FIX_1": Camera4935,
     "18th_Crs_BsStp_JN_FIX_2": Camera4936,
@@ -846,5 +879,7 @@ detection_class_map = {
     "Ayyappa_Temple_FIX_1": Camera6645,
     "Devasandra_Sgnl_JN_FIX_1": Camera6170,
     "HP_Ptrl_Bnk_BEL_Rd_FIX_2": Camera6164,
-    "Stn_HD_1": Camera5816
+    "Stn_HD_1": Camera5816,
+    "Kuvempu_Circle_FIX_1": Camera2853,
+    "Kuvempu_Circle_FIX_2": Camera2854
 }
