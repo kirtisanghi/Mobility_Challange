@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import logging
 import os
 from datetime import datetime as dt
 
@@ -24,8 +25,12 @@ from .constants import (
     FRAME_COL,
     TIMESTAMP_COL,
     CAMERA_NAME_COL,
-    TURNING_PATTERN_COL
+    TURNING_PATTERN_COL,
+    VERBOSE_LOGGING
 )
+
+# setup the logger
+logger = logging.getLogger(__name__)
 
 
 def is_colab_env():
@@ -223,6 +228,12 @@ def sample_and_aggregate_data(time_series_data: list, camera_name: str, grouping
     # load the inference data as pandas dataframe
     data_frame = pd.DataFrame(time_series_data)
 
+    # when in debug mode, dump entire timeseries dataframe
+    # into a csv file
+    if environmental_variable_is_present(VERBOSE_LOGGING):
+        debug_file_name = f"{camera_name}-debug-dataframe.csv"
+        save_output(data_frame, debug_file_name, to_gcs=False)
+
     # drop frame column
     data_frame.drop(columns=[FRAME_COL], inplace=True)
 
@@ -256,19 +267,19 @@ def include_leaderboard_submission_guidelines(data_frame: pd.DataFrame):
 class AmazonService:
     def __init__(self, s3_bucket: str = "ieee-dataport"):
         self.bucket = s3_bucket
-
         self.session = boto3.session.Session()
         self.client = self.session.client("s3")
+        logger.debug(f"AmazonService object initialization completed")
 
     def list_objects_with_prefix(self, prefix: str) -> list[str]:
         try:
             response = self.client.list_objects_v2(Bucket=self.bucket, Prefix=prefix)
             contents = response.get("Contents")
             if contents is None:
-                print(f"no objects found in bucket \"{self.bucket}\" with prefix \"{prefix}\"")
+                logger.warning(f"no objects found in bucket \"{self.bucket}\" with prefix \"{prefix}\"")
                 return []
             video_keys = [content.get("Key") for content in contents if content.get("Key").endswith(".mp4")]
-            print(f"found {len(contents)} objects with prefix {prefix}, of which {len(video_keys)} are video files")
+            logger.info(f"found {len(contents)} objects with prefix {prefix}, of which {len(video_keys)} are video files")
             return video_keys
         except ClientError as err:
             raise Exception(f"an error occurred while listing objects in {self.bucket} with prefix \"{prefix}\"\n{err}")
@@ -282,13 +293,13 @@ class AmazonService:
                     "Key": object_key
                 }
             )
-            print(f"signed url successfully generated for {object_key}")
+            logger.info(f"signed url successfully generated for {object_key}")
             return signed_url
         except ClientError as err:
             raise Exception(f"failed to created signed url for {object_key}\n{err}")
 
 
-def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool, index: str):
+def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool, index: str = None):
     """
     writes the provided dataframe in the given output
     either in local disk or to gcs. It uses pre-defined

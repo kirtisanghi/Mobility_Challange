@@ -1,3 +1,5 @@
 .idea
 object-detection/videos/
 object-detection/ml/__pycache__/
+object-detection/**/*.log
+object-detection/**/*.csv

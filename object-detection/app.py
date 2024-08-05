@@ -29,6 +29,9 @@ import os
 import sys
 from ml.main import main as main_prog
 from ml.constants import LEADER_BOARD_ENV
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -48,8 +51,8 @@ def main():
     if output_file_name is None or output_file_name.strip() == "":
         exit(f"[error]: please provide a csv file name to store object detection results")
 
-    print(f"Running Object Detection on video present at \"{video_name}\"")
-    print(f"Detection results will be stored at \"{output_file_name}\"")
+    logger.info(f"Video File Path: {video_name}")
+    logger.info(f"Detection Results Path: {output_file_name}")
 
     # setting this environment variable to claim the execution of
     # this script for leaderboard evaluation

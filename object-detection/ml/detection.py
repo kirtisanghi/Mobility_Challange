@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from typing import Mapping, List
@@ -39,6 +40,9 @@ from .constants import (
     VEHICLE_ENTRY_COL,
     VEHICLE_EXIT_COL
 )
+
+# setup the logger
+logger = logging.getLogger(__name__)
 
 
 class ObjectDetectionAndTracking(ABC):
@@ -112,6 +116,7 @@ class ObjectDetectionAndTracking(ABC):
         self.crossed_vehicles.append(track_id)
         self.detected_vehicles[direction][label] += 1
         self.detected_vehicles_in_frame[direction][label] += 1
+        logger.debug(f"{label}({track_id}) successfully annotated for {direction} direction")
         annotate_object_bounding_box(frame, bounding_box)
 
 
@@ -224,7 +229,7 @@ class MultiLane(ObjectDetectionAndTracking):
     direction_track_history = defaultdict(lambda: deque())
     # keeps a track history of the polygon area the object
     # is detected in
-    polygon_track_history = defaultdict(lambda: set())
+    polygon_track_history = defaultdict(lambda: list())
 
     # key(s) used to group the dataframe specifying direction
     grouping_key: List[str] = [VEHICLE_ENTRY_COL, VEHICLE_EXIT_COL]
@@ -587,7 +592,7 @@ class Camera5816(MultiLane):
         self.polygon_1 = np.array([[0, 75], [600, 75], [600, 400], [0, 400]], np.int32)
         self.polygon_1 = self.polygon_1.reshape((-1, 1, 2))
 
-        self.polygon_2 = np.array([[1000, 0], [1580, 0], [1580, 300], [700, 300]], np.int32)
+        self.polygon_2 = np.array([[1000, 0], [1580, 0], [1580, 400], [650, 400]], np.int32)
         self.polygon_2 = self.polygon_2.reshape((-1, 1, 2))
 
         self.polygon_3 = np.array([[800, 470], [1900, 70], [1920, 1080], [800, 1080]], np.int32)
@@ -641,87 +646,87 @@ class Camera5816(MultiLane):
         # with respect to all the lines
         prev_center_coord = self.track_history[track_id][-2]
         directions = self.direction_track_history[track_id]
-        polygons = list(self.polygon_track_history[track_id])
+        polygons = self.polygon_track_history[track_id]
         if self._is_incoming_up(cur_center_coord, prev_center_coord) and len(directions) == 0:
             if INCOMING_UP not in directions:
-                print(f"{track_id} _is_incoming_up")
+                logger.debug(f"{label}({track_id}) _is_incoming_up")
                 directions.append(INCOMING_UP)
 
         elif self._is_incoming_left(cur_center_coord, prev_center_coord) and len(directions) == 0:
             if INCOMING_LEFT not in directions:
-                print(f"{track_id} _is_incoming_left")
+                logger.debug(f"{label}({track_id}) _is_incoming_left")
                 directions.append(INCOMING_LEFT)
 
         elif self._is_incoming_right(cur_center_coord, prev_center_coord) and len(directions) == 0:
             if INCOMING_RIGHT not in directions:
-                print(f"{track_id} _is_incoming_right")
+                logger.debug(f"{label}({track_id}) _is_incoming_right")
                 directions.append(INCOMING_RIGHT)
 
         elif self._is_outgoing_up(cur_center_coord, prev_center_coord) and len(directions) >= 1:
             if OUTGOING_UP not in directions:
-                print(f"{track_id} _is_outgoing_up")
+                logger.debug(f"{label}({track_id}) _is_outgoing_up")
                 directions.append(OUTGOING_UP)
 
                 # if length of directions is 2, then we have detected
                 # the vehicle and got its direction
                 if len(directions) == 2:
                     direction = f"{directions[0]}->{directions[1]}"
-                    print(f"{track_id} directions {direction}")
+                    logger.debug(f"{label}({track_id}) direction {direction} polygons {polygons}")
 
                     # if it is detected as U-turn, check the first polygon
                     # that it was part of
                     if is_u_turn(directions):
-                        print(f"u-turn {track_id} {polygons}")
+                        logger.debug(f"u-turn {label}({track_id})")
                         self._inspect_polygon_for_outgoing_up(frame, bounding_box, track_id, label, polygons)
                     else:
                         self._on_successful_tracking(frame, bounding_box, track_id, label, direction)
                 else:
-                    print(f"multi-directions {track_id} {polygons}")
+                    logger.debug(f"multi-directions {label}({track_id}) directions {directions} polygons {polygons}")
                     self._inspect_polygon_for_outgoing_up(frame, bounding_box, track_id, label, polygons)
 
         elif self._is_outgoing_left(cur_center_coord, prev_center_coord) and len(directions) >= 1:
             # get the direction
             if OUTGOING_LEFT not in directions:
-                print(f"{track_id} _is_outgoing_left")
+                logger.debug(f"{label}({track_id}) _is_outgoing_left")
                 directions.append(OUTGOING_LEFT)
 
                 # if length of directions is 2, then we have detected
                 # the vehicle and got its direction
                 if len(directions) == 2:
                     direction = f"{directions[0]}->{directions[1]}"
-                    print(f"{track_id} directions {direction}")
+                    logger.debug(f"{label}({track_id}) direction {direction} polygons {polygons}")
 
                     # if it is detected as U-turn, check the first polygon
                     # that it was part of
                     if is_u_turn(directions):
-                        print(f"u-turn {track_id} {polygons}")
+                        logger.debug(f"u-turn {label}({track_id})")
                         self._inspect_polygon_for_outgoing_left(frame, bounding_box, track_id, label, polygons)
                     else:
                         self._on_successful_tracking(frame, bounding_box, track_id, label, direction)
                 else:
-                    print(f"multi-directions {track_id} {polygons}")
+                    logger.debug(f"multi-directions {label}({track_id}) directions {directions} polygons {polygons}")
                     self._inspect_polygon_for_outgoing_left(frame, bounding_box, track_id, label, polygons)
 
         elif self._is_outgoing_right(cur_center_coord, prev_center_coord) and len(directions) >= 1:
             if OUTGOING_RIGHT not in directions:
-                print(f"{track_id} _is_outgoing_right")
+                logger.debug(f"{track_id} _is_outgoing_right")
                 directions.append(OUTGOING_RIGHT)
 
                 # if length of directions is 2, then we have detected
                 # the vehicle and got its direction
                 if len(directions) == 2:
                     direction = f"{directions[0]}->{directions[1]}"
-                    print(f"{track_id} directions {direction}")
+                    logger.debug(f"{label}({track_id}) direction {direction} polygons {polygons}")
 
                     # if it is detected as U-turn, check the first polygon
                     # that it was part of
                     if is_u_turn(directions):
-                        print(f"u-turn {track_id} {polygons}")
+                        logger.debug(f"u-turn {label}({track_id})")
                         self._inspect_polygon_for_outgoing_right(frame, bounding_box, track_id, label, polygons)
                     else:
                         self._on_successful_tracking(frame, bounding_box, track_id, label, direction)
                 else:
-                    print(f"multi-directions {track_id} {polygons}")
+                    logger.debug(f"multi-directions {label}({track_id}) directions {directions} polygons {polygons}")
                     self._inspect_polygon_for_outgoing_right(frame, bounding_box, track_id, label, polygons)
 
     def _inspect_polygon_for_outgoing_right(self, frame, bounding_box, track_id, label, polygons):
@@ -732,6 +737,8 @@ class Camera5816(MultiLane):
             self._on_successful_tracking(frame, bounding_box, track_id, label, self.BE)
         elif polygons[0] in [POLYGON_2]:
             self._on_successful_tracking(frame, bounding_box, track_id, label, self.DE)
+        else:
+            logger.debug(f"{label}({track_id}) is not originating from '{POLYGON_1}' or '{POLYGON_2}'")
 
     def _inspect_polygon_for_outgoing_left(self, frame, bounding_box, track_id, label, polygons):
         # corner case
@@ -741,6 +748,8 @@ class Camera5816(MultiLane):
             self._on_successful_tracking(frame, bounding_box, track_id, label, self.DA)
         elif polygons[0] in [POLYGON_3]:
             self._on_successful_tracking(frame, bounding_box, track_id, label, self.FA)
+        else:
+            logger.debug(f"{label}({track_id}) is not originating from '{POLYGON_2}' or '{POLYGON_3}'")
 
     def _inspect_polygon_for_outgoing_up(self, frame, bounding_box, track_id, label, polygons):
         # corner case
@@ -750,12 +759,15 @@ class Camera5816(MultiLane):
             self._on_successful_tracking(frame, bounding_box, track_id, label, self.BC)
         elif polygons[0] in [POLYGON_3]:
             self._on_successful_tracking(frame, bounding_box, track_id, label, self.FC)
+        else:
+            logger.debug(f"{label}({track_id}) is not originating from '{POLYGON_1}' or '{POLYGON_3}'")
 
     def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
         areas_undergone = self.polygon_track_history[track_id]
         for polygon in polygons:
-            areas_undergone.add(polygon)
+            if polygon not in areas_undergone:
+                areas_undergone.append(polygon)
 
     def _is_incoming_left(self, cur_center_coord, prev_center_coord):
         l1_cur_sign, l1_prev_sign = get_object_location_signs(
