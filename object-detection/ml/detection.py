@@ -317,6 +317,7 @@ class MultiLane(ObjectDetectionAndTracking):
             self.detected_vehicles_time_series.append(row_data)
 
 
+# define all the classes implementing single lane camera view
 class Camera4935(SingleLane):
     camera_name = "18th_Crs_BsStp_JN_FIX_1"
     camera_number = 4935
@@ -334,6 +335,58 @@ class Camera4935(SingleLane):
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
 
 
+class Camera4895(SingleLane):
+    camera_name = "18th_Crs_Bus_Stop_FIX_1"
+    camera_number = 4895
+    site_id = 954
+    direction = GOING_DOWN
+
+    def __init__(self):
+        super().__init__()
+        self.line_start = (50, 600)
+        self.line_end = (1300, 650)
+        self.line_text = (1300, 650)
+        self.result_origin = (100, 100)
+        self.result_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+
+class Camera2853(SingleLane):
+    camera_name = "Kuvempu_Circle_FIX_1"
+    camera_number = 2853
+    site_id = 1354
+    direction = GOING_DOWN
+
+    def __init__(self):
+        super().__init__()
+        self.line_start = (300, 100)
+        self.line_end = (1700, 850)
+        self.line_text = (1500, 750)
+        self.result_origin = (100, 100)
+        self.result_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+
+class Camera2854(SingleLane):
+    camera_name = "Kuvempu_Circle_FIX_2"
+    camera_number = 2854
+    site_id = 1354
+    direction = GOING_UP
+
+    def __init__(self):
+        super().__init__()
+        self.line_start = (50, 400)
+        self.line_end = (1600, 100)
+        self.line_text = (100, 400)
+        self.result_origin = (100, 100)
+        self.result_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+
+# define all the classes implementing double lane camera view
 class Camera4936(DoubleLane):
     camera_name = "18th_Crs_BsStp_JN_FIX_2"
     camera_number = 4936
@@ -374,23 +427,6 @@ class Camera4936(DoubleLane):
         annotate_detection_result(frame, self.detected_vehicles, self.left_offset, self.left_result_origin, GOING_UP)
         annotate_detection_result(frame, self.detected_vehicles, self.right_offset, self.right_result_origin,
                                   GOING_DOWN)
-
-
-class Camera4895(SingleLane):
-    camera_name = "18th_Crs_Bus_Stop_FIX_1"
-    camera_number = 4895
-    site_id = 954
-    direction = GOING_DOWN
-
-    def __init__(self):
-        super().__init__()
-        self.line_start = (50, 600)
-        self.line_end = (1300, 650)
-        self.line_text = (1300, 650)
-        self.result_origin = (100, 100)
-        self.result_offset = 20
-        self.detected_vehicles = self.construct_tracker_dict()
-        self.detected_vehicles_in_frame = self.construct_tracker_dict()
 
 
 class Camera6645(DoubleLane):
@@ -519,6 +555,7 @@ class Camera6164(DoubleLane):
                 self._on_successful_tracking(frame, bounding_box, track_id, label, GOING_DOWN)
 
 
+# define all the classes implementing multi lane camera view
 class Camera5816(MultiLane):
     """
     Detection and evaluation rules
@@ -840,11 +877,19 @@ class Camera5816(MultiLane):
 
 
 detection_class_map = {
+    # single lane camera views
     "18th_Crs_BsStp_JN_FIX_1": Camera4935,
-    "18th_Crs_BsStp_JN_FIX_2": Camera4936,
     "18th_Crs_Bus_Stop_FIX_1": Camera4895,
+    "Kuvempu_Circle_FIX_1": Camera2853,
+    "Kuvempu_Circle_FIX_2": Camera2854,
+
+    # double lane camera views
+    "18th_Crs_BsStp_JN_FIX_2": Camera4936,
     "Ayyappa_Temple_FIX_1": Camera6645,
     "Devasandra_Sgnl_JN_FIX_1": Camera6170,
     "HP_Ptrl_Bnk_BEL_Rd_FIX_2": Camera6164,
-    "Stn_HD_1": Camera5816
+
+    # multi lane camera views
+    "Stn_HD_1": Camera5816,
+
 }
