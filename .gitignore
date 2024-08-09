@@ -4,3 +4,8 @@ object-detection/ml/__pycache__/
 object-detection/**/*.log
 object-detection/**/*.csv
 object-detection/**/.env
+object-detection/**/*.ipynb_checkpoints
+
+traffic-prediction/**/*.csv
+traffic-prediction/models/beta/
+traffic-prediction/**/*.ipynb_checkpoints
