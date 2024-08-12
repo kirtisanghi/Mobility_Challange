@@ -1,28 +1,3 @@
-## Dockerfile for non-gpu object detection
-# FROM python:3.11.9
-
-# MAINTAINER "Sandeep Upadhyay<sandeepupadhyay732@gmail.com>"
-# WORKDIR /object-detection
-# COPY requirements.txt requirements.txt
-# RUN pip install --user --requirement requirements.txt
-
-# RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
-
-# RUN git clone https://github.com/ultralytics/ultralytics
-# WORKDIR /object-detection/ultralytics
-# RUN git reset --hard 2071776a3672eb835d7c56cfff22114707765ac
-# RUN wget https://gist.githubusercontent.com/Y-T-G/8f4fc0b78a0a559a06fe84ae4f359e6e/raw/17b1407fefeac86d089c4cf14f174c8bb44948af/add_head.patch
-# RUN git apply add_head.patch
-# RUN pip install --editable .
-
-# WORKDIR /application
-# COPY app.py /application/
-# COPY ml /application/ml/
-# COPY models /application/models/
-
-# ENTRYPOINT ["python"]
-
-## Dockerfile for gpu based object detection
 
 FROM nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
 
@@ -64,4 +39,10 @@ COPY app.py /application/
 COPY ml /application/ml/
 COPY models /application/models/
 
-ENTRYPOINT ["python3.11"]
+# remove the existing python3 binary
+RUN rm /usr/bin/python3
+
+# createa symantic link from python3.11 to python3
+RUN ls -s /usr/bin/python3.11 /usr/bin/python3
+
+ENTRYPOINT ["python3"]
