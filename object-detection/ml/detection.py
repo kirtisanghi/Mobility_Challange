@@ -58,6 +58,10 @@ class ObjectDetectionAndTracking(ABC):
         # each detected object by storing the center
         # point of its bounding box.
         self.track_history = defaultdict(lambda: deque())
+        # this keeps track of the vehicle class type
+        # of the object detected in the consecutive
+        # frames by storing the track_id vs vehicle_class
+        self.vehicle_class_history = defaultdict(lambda: deque())
         # stores the track id of the vehicles which
         # are marked as tracked
         self.crossed_vehicles = list()
@@ -684,24 +688,23 @@ class Camera5816(MultiLane):
         prev_center_coord = self.track_history[track_id][-2]
         directions = self.direction_track_history[track_id]
         polygons = self.polygon_track_history[track_id]
-        if self._is_incoming_up(cur_center_coord, prev_center_coord) and len(directions) == 0:
-            if INCOMING_UP not in directions:
-                logger.debug(f"{label}({track_id}) _is_incoming_up")
-                directions.append(INCOMING_UP)
+        if self._is_incoming_up(cur_center_coord, prev_center_coord) and INCOMING_UP not in directions:
+            logger.debug(f"{label}({track_id}) _is_incoming_up | pol {polygons}")
+            directions.append(INCOMING_UP)
 
-        elif self._is_incoming_left(cur_center_coord, prev_center_coord) and len(directions) == 0:
-            if INCOMING_LEFT not in directions:
-                logger.debug(f"{label}({track_id}) _is_incoming_left")
-                directions.append(INCOMING_LEFT)
+        if self._is_incoming_left(cur_center_coord, prev_center_coord) and INCOMING_LEFT not in directions:
+            logger.debug(f"{label}({track_id}) _is_incoming_left | pol {polygons}")
+            directions.append(INCOMING_LEFT)
 
-        elif self._is_incoming_right(cur_center_coord, prev_center_coord) and len(directions) == 0:
-            if INCOMING_RIGHT not in directions:
-                logger.debug(f"{label}({track_id}) _is_incoming_right")
-                directions.append(INCOMING_RIGHT)
+        if self._is_incoming_right(cur_center_coord, prev_center_coord) and INCOMING_RIGHT not in directions:
+            logger.debug(f"{label}({track_id}) _is_incoming_right | pol {polygons}")
+            directions.append(INCOMING_RIGHT)
 
-        elif self._is_outgoing_up(cur_center_coord, prev_center_coord) and len(directions) >= 1:
+        logger.debug(f"{label}({track_id}) directions {directions}")
+
+        if self._is_outgoing_up(cur_center_coord, prev_center_coord) and len(directions) >= 1:
             if OUTGOING_UP not in directions:
-                logger.debug(f"{label}({track_id}) _is_outgoing_up")
+                logger.debug(f"{label}({track_id}) _is_outgoing_up | pol {polygons}")
                 directions.append(OUTGOING_UP)
 
                 # if length of directions is 2, then we have detected
@@ -724,7 +727,7 @@ class Camera5816(MultiLane):
         elif self._is_outgoing_left(cur_center_coord, prev_center_coord) and len(directions) >= 1:
             # get the direction
             if OUTGOING_LEFT not in directions:
-                logger.debug(f"{label}({track_id}) _is_outgoing_left")
+                logger.debug(f"{label}({track_id}) _is_outgoing_left | pol {polygons}")
                 directions.append(OUTGOING_LEFT)
 
                 # if length of directions is 2, then we have detected
@@ -746,7 +749,7 @@ class Camera5816(MultiLane):
 
         elif self._is_outgoing_right(cur_center_coord, prev_center_coord) and len(directions) >= 1:
             if OUTGOING_RIGHT not in directions:
-                logger.debug(f"{track_id} _is_outgoing_right")
+                logger.debug(f"{label}({track_id})  _is_outgoing_right | pol {polygons}")
                 directions.append(OUTGOING_RIGHT)
 
                 # if length of directions is 2, then we have detected
