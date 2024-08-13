@@ -109,6 +109,8 @@ def detect_and_track(video_path: str, file_name: str):
         if success:
             # get the current frame number
             frame_number = capture.get(cv2.CAP_PROP_POS_FRAMES)
+            width, height = capture.get(cv2.CAP_PROP_FRAME_WIDTH), capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+            logger.debug(f"width: {width} | height: {height}")
 
             # retrieve the time passed since the beginning
             # of the video till current frame in millisecond
@@ -120,7 +122,7 @@ def detect_and_track(video_path: str, file_name: str):
 
             # Run object tracking using yolo model on the frame,
             # persisting tracks between frames
-            results = model.track(frame, conf=0.6, iou=0.5, persist=True, classes=list(DETECTABLE_CLASSES.keys()))
+            results = model.track(frame, conf=0.7, iou=0.5, persist=True, classes=list(DETECTABLE_CLASSES.keys()))
 
             # add grid to the image frame
             # frame = draw_grid_with_coordinates(frame)
@@ -180,6 +182,7 @@ def detect_and_track(video_path: str, file_name: str):
                             annotate_object_bounding_box(frame, bounding_box)
                         else:
                             if detection_class_obj.can_run_detection(track_id):
+                                logger.debug(f"running object tracker on {label}({track_id}) | score {score}")
                                 detection_class_obj.track_object(
                                     frame,
                                     bounding_box,
@@ -189,6 +192,8 @@ def detect_and_track(video_path: str, file_name: str):
                                 )
                             else:
                                 logger.debug(f"object {label}({track_id}) not detected in enough frames(2)")
+                    else:
+                        logger.debug(f"object {label}({track_id}) not a target object class, skipping")
 
                 # add the object detection result for current frame
                 # to time series
