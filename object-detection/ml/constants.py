@@ -81,6 +81,8 @@ GOING_UP = "Going Up"
 GOING_DOWN = "Going Down"
 GOING_LEFT = "Going Left"
 GOING_RIGHT = "Going Right"
+AB = "AB"
+BA = "BA"
 
 # with resect to the leader board camera view of
 # Stn_HD_1, following directions are coded with
@@ -151,3 +153,8 @@ POLYGON_1 = "pol1"
 POLYGON_2 = "pol2"
 POLYGON_3 = "pol3"
 POLYGON_4 = "pol4"
+
+POLYGON_A = "pol_a"
+POLYGON_B = "pol_b"
+
+RESOLUTION = (640,384)
