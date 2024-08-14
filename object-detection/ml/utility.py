@@ -173,11 +173,11 @@ def annotate_detection_result(frame, detected_vehicles, offset, origin_coordinat
     # offset = 30
     # x_axis = 100
     x_axis, y_axis = origin_coordinates
-    cv2.putText(frame, direction, origin_coordinates, cv2.FONT_HERSHEY_SIMPLEX, 0.5, YELLOW_RGB, 2, cv2.LINE_AA)
+    cv2.putText(frame, direction, origin_coordinates, cv2.FONT_HERSHEY_DUPLEX, 1, YELLOW_RGB, 2, cv2.LINE_AA)
     for key, value in detected_vehicles[direction].items():
         y_axis += offset
         msg = f"{key}: {value}"
-        cv2.putText(frame, msg, (x_axis, y_axis), cv2.FONT_HERSHEY_SIMPLEX, 0.5, YELLOW_RGB, 2, cv2.LINE_AA)
+        cv2.putText(frame, msg, (x_axis, y_axis), cv2.FONT_HERSHEY_DUPLEX, 1, YELLOW_RGB, 2, cv2.LINE_AA)
 
 
 def get_object_location_signs(start_coordinates, end_coordinates, cur_center_coordinates, prev_center_coordinates):
