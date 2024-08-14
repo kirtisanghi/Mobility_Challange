@@ -28,10 +28,11 @@ from .constants import (
     RUNNING_IN_LOCAL,
     SHOW_DETECTION_ANNOTATIONS,
     LEADER_BOARD_ENV,
-    TURNING_PATTERN_COL
+    TURNING_PATTERN_COL,
+    RESOLUTION
 )
 from .detection import (
-    detection_class_map, MultiLane
+    detection_class_map, MultiLane, DoubleLane
 )
 
 # setup the logger
@@ -175,6 +176,8 @@ def detect_and_track(video_path: str, file_name: str):
                         detection_class_obj.update_track_history(track_id, center_coordinates)
                         if isinstance(detection_class_obj, MultiLane):
                             detection_class_obj.update_polygon_track_history(track_id, center_coordinates)
+                        elif  isinstance(detection_class_obj, DoubleLane):
+                            detection_class_obj.update_polygon_track_history(track_id, center_coordinates)
                         annotate_object_center(frame, obj_identifier, center_coordinates)
 
                         if track_id in detection_class_obj.crossed_vehicles:
@@ -204,6 +207,8 @@ def detect_and_track(video_path: str, file_name: str):
 
                 # Display the annotated frame
                 if environmental_variable_is_present(RUNNING_IN_LOCAL):
+                    cv2.namedWindow("Realtime Object Detection & Tracking", cv2.WINDOW_NORMAL)
+                    cv2.resizeWindow("Realtime Object Detection & Tracking", int(RESOLUTION[0]),int(RESOLUTION[1]))
                     cv2.imshow("Realtime Object Detection & Tracking", frame)
 
             # Break the loop if 'q' is pressed
