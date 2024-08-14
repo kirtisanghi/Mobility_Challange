@@ -41,6 +41,8 @@ from .constants import (
     LEADER_BOARD_ENV,
     VEHICLE_ENTRY_COL,
     VEHICLE_EXIT_COL,
+    POLYGON_A,
+    POLYGON_B,
     RESOLUTION
 )
 
@@ -179,6 +181,8 @@ class DoubleLane(ObjectDetectionAndTracking):
     the opposite direction with respect to both lanes
     """
     directions: List[str]
+
+    polygon_track_history = defaultdict(lambda: list()) 
 
     # key(s) used to group the dataframe specifying direction
     grouping_key: List[str] = [TURNING_PATTERN_COL]
@@ -368,11 +372,11 @@ class Camera4895(SingleLane):
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
 
 #Kuvempu_Circle_FIX_1
-class Camera2853(SingleLane):
+class Camera2853(DoubleLane):
     camera_name = "Kuvempu_Circle_FIX_1"
     camera_number = 2853
     site_id = 1354
-    direction = [AB,BA]
+    directions = [AB,BA]
 
     def __init__(self):
         super().__init__()
@@ -462,7 +466,7 @@ class Camera4936(DoubleLane):
         self.detected_vehicles = self.construct_tracker_dict()
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
 
-        def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
+    def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
         areas_undergone = self.polygon_track_history[track_id]
         if (POLYGON_B in areas_undergone) and (POLYGON_A in areas_undergone):
             if areas_undergone.index(POLYGON_B)<areas_undergone.index(POLYGON_A):
