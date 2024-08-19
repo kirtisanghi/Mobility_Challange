@@ -166,51 +166,6 @@ class ObjectDetectionAndTracking(ABC):
         annotate_object_bounding_box(frame, bounding_box)
 
 
-class SingleLane(ObjectDetectionAndTracking):
-    """
-    object detection class implementation for camera having
-    visibility to a single lane
-    """
-    direction: str
-
-    # key(s) used to group the dataframe specifying direction
-    grouping_key: List[str] = [TURNING_PATTERN_COL]
-
-    def __init__(self):
-        super().__init__()
-        self.line_start = ()
-        self.line_end = ()
-        self.line_text = ()
-        self.result_origin = ()
-        self.result_offset = 0
-        self.detected_vehicles = self.construct_tracker_dict()
-        self.detected_vehicles_in_frame = self.construct_tracker_dict()
-
-    def add_detection_annotation(self, frame):
-        annotate_crossing_line(frame, self.line_start, self.line_end, self.line_text)
-
-    def add_result_annotation(self, frame):
-        annotate_detection_result(frame, self.detected_vehicles, self.result_offset, self.result_origin, self.direction)
-
-    def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
-        cur_sign, prev_sign = get_object_location_signs(
-            self.line_start,
-            self.line_end,
-            cur_center_coord,
-            self.track_history[track_id][-2]
-        )
-        if self.direction == GOING_UP and is_object_going_up(cur_sign, prev_sign) is np.True_:
-            self._on_successful_tracking(frame, bounding_box, track_id, label, GOING_UP)
-
-        if self.direction == GOING_DOWN and is_object_going_down(cur_sign, prev_sign) is np.True_:
-            self._on_successful_tracking(frame, bounding_box, track_id, label, GOING_DOWN)
-
-    def construct_tracker_dict(self):
-        return {
-            self.direction: {VEHICLE_CLASS_MAP[label]: 0 for label in TARGET_CLASS_LIST}
-        }
-
-
 class DoubleLane(ObjectDetectionAndTracking):
     """
     object detection class implementation for camera having
@@ -864,44 +819,10 @@ class Camera6165(MultiLane):
     camera_number = 6165
     site_id = 1125
     
-    """ BC = f"{INCOMING_LEFT}->{OUTGOING_UP}"
-    BE = f"{INCOMING_LEFT}->{OUTGOING_RIGHT}"
-    DE = f"{INCOMING_UP}->{OUTGOING_RIGHT}"
-    DA = f"{INCOMING_UP}->{OUTGOING_LEFT}"
-    FC = f"{INCOMING_RIGHT}->{OUTGOING_UP}"
-    FA = f"{INCOMING_RIGHT}->{OUTGOING_LEFT}" """
-    
-    directions = [AB,AC]
-    #directions = [BC, BE, DE, DA, FC, FA]
-
-    """ directions_map = {
-        BC: "BC",
-        BE: "BE",
-        DE: "DE",
-        DA: "DA",
-        FC: "FC",
-        FA: "FA"
-    } """
+    directions = ["AB","AC"]
 
     def __init__(self):
         super().__init__()
-        """  self.l1_start = (300, 100)
-        self.l1_end = (300, 1080)
-        self.l1_text = (50, 150) 
-        self.l1_result_origin = ()
-        self.l1_offset = 0"""
-
-        """ self.l2_start = (350, 100)
-        self.l2_end = (1580, 125)
-        self.l2_text = (350, 140) 
-        self.l2_result_origin = ()
-        self.l2_offset = 0"""
-
-        """  self.l3_start = (1600, 180)
-        self.l3_end = (1600, 1080)
-        self.l3_text = (1610, 1050) 
-        self.l3_result_origin = ()
-        self.l3_offset = 0"""
 
         self.A_polygon = np.array([[300, 200], [1525, 100], [1500, 400], [300, 500]], np.int32)
         self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
@@ -912,6 +833,10 @@ class Camera6165(MultiLane):
         self.C_polygon = np.array([[5,800], [1350,800], [1350,1080], [5, 1080]], np.int32)
         self.C_polygon = self.C_polygon.reshape((-1, 1, 2))
 
+        self.A_polygon_name_coordinates = (350,250)
+        self.B_polygon_name_coordinates = (1550,250)
+        self.C_polygon_name_coordinates = (55,850)
+
         # Direction AC
         self.dir1_result_origin = (25, 200)
         self.dir1_offset = 30
@@ -920,41 +845,21 @@ class Camera6165(MultiLane):
         self.dir2_result_origin = (1525, 200)
         self.dir2_offset = 30
 
-        """  # Direction FC
-        self.dir3_result_origin = (25, 50)
-        self.dir3_offset = 20
-
-        # Direction BC
-        self.dir4_result_origin = (325, 50)
-        self.dir4_offset = 20
-
-        # Direction DE
-        self.dir5_result_origin = (1400, 50)
-        self.dir5_offset = 20
-
-        # Direction BE
-        self.dir6_result_origin = (1675, 50)
-        self.dir6_offset = 20 """
-
         self.detected_vehicles = self.construct_tracker_dict()
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
 
     def add_detection_annotation(self, frame):
-        #annotate_crossing_line(frame, self.l1_start, self.l1_end, self.l1_text, msg="")
-        #annotate_crossing_line(frame, self.l2_start, self.l2_end, self.l2_text, msg="")
-        #annotate_crossing_line(frame, self.l3_start, self.l3_end, self.l3_text, msg="")
         cv2.polylines(frame, [self.A_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
         cv2.polylines(frame, [self.B_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
         cv2.polylines(frame, [self.C_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
-        #cv2.polylines(frame, [self.C_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.putText(frame, self.A_polygon_name, self.A_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.B_polygon_name, self.B_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.C_polygon_name, self.C_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
 
     def add_result_annotation(self, frame):
-        annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, AC)
-        annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir2_result_origin, AB)
-        #annotate_detection_result(frame, self.detected_vehicles, self.dir3_offset, self.dir3_result_origin, self.FC)
-        #annotate_detection_result(frame, self.detected_vehicles, self.dir4_offset, self.dir4_result_origin, self.BC)
-        #annotate_detection_result(frame, self.detected_vehicles, self.dir5_offset, self.dir5_result_origin, self.DE)
-        #annotate_detection_result(frame, self.detected_vehicles, self.dir6_offset, self.dir6_result_origin, self.BE)
+        annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, "AC")
+        annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir2_result_origin, "AB")
+        
 
     def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
         # get the sign of object in current frame and previous frame
@@ -972,39 +877,7 @@ class Camera6165(MultiLane):
             elif (first_polygon == POLYGON_A) and (last_polygon == POLYGON_C):
                 self._on_successful_tracking(frame, bounding_box, track_id, label, AC)
         logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone")
-        
-    def _inspect_polygon_for_outgoing_right(self, frame, bounding_box, track_id, label, polygons):
-        # corner case
-        if len(polygons) == 0:
-            return
-        elif polygons[0] in [POLYGON_A]:
-            self._on_successful_tracking(frame, bounding_box, track_id, label, self.BE)
-        elif polygons[0] in [POLYGON_2]:
-            self._on_successful_tracking(frame, bounding_box, track_id, label, self.DE)
-        else:
-            logger.debug(f"{label}({track_id}) is not originating from '{POLYGON_1}' or '{POLYGON_2}'")
-
-    def _inspect_polygon_for_outgoing_left(self, frame, bounding_box, track_id, label, polygons):
-        # corner case
-        if len(polygons) == 0:
-            return
-        elif polygons[0] in [POLYGON_B]:
-            self._on_successful_tracking(frame, bounding_box, track_id, label, self.DA)
-        elif polygons[0] in [POLYGON_C]:
-            self._on_successful_tracking(frame, bounding_box, track_id, label, self.FA)
-        else:
-            logger.debug(f"{label}({track_id}) is not originating from '{POLYGON_2}' or '{POLYGON_3}'")
-
-    def _inspect_polygon_for_outgoing_up(self, frame, bounding_box, track_id, label, polygons):
-        # corner case
-        if len(polygons) == 0:
-            return
-        elif polygons[0] in [POLYGON_A]:
-            self._on_successful_tracking(frame, bounding_box, track_id, label, self.BC)
-        elif polygons[0] in [POLYGON_C]:
-            self._on_successful_tracking(frame, bounding_box, track_id, label, self.FC)
-        else:
-            logger.debug(f"{label}({track_id}) is not originating from '{POLYGON_1}' or '{POLYGON_3}'")
+            
 
     def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
@@ -1013,63 +886,7 @@ class Camera6165(MultiLane):
             if polygon not in areas_undergone:
                 areas_undergone.append(polygon)
 
-    def _is_incoming_left(self, cur_center_coord, prev_center_coord):
-        l1_cur_sign, l1_prev_sign = get_object_location_signs(
-            self.l1_start,
-            self.l1_end,
-            cur_center_coord,
-            prev_center_coord
-        )
-        return (is_object_in_polygon_area(cur_center_coord, self.polygon_1)
-                and is_object_going_down(l1_cur_sign, l1_prev_sign) is np.True_)
-
-    def _is_outgoing_left(self, cur_center_coord, prev_center_coord):
-        l1_cur_sign, l1_prev_sign = get_object_location_signs(
-            self.l1_start,
-            self.l1_end,
-            cur_center_coord,
-            prev_center_coord
-        )
-        return is_object_going_up(l1_cur_sign, l1_prev_sign) is np.True_
-
-    def _is_incoming_up(self, cur_center_coord, prev_center_coord):
-        l2_cur_sign, l2_prev_sign = get_object_location_signs(
-            self.l2_start,
-            self.l2_end,
-            cur_center_coord,
-            prev_center_coord
-        )
-        return (is_object_in_polygon_area(cur_center_coord, self.polygon_2)
-                and is_object_going_down(l2_cur_sign, l2_prev_sign) is np.True_)
-
-    def _is_outgoing_up(self, cur_center_coord, prev_center_coord):
-        l2_cur_sign, l2_prev_sign = get_object_location_signs(
-            self.l2_start,
-            self.l2_end,
-            cur_center_coord,
-            prev_center_coord
-        )
-        return is_object_going_up(l2_cur_sign, l2_prev_sign) is np.True_
-
-    def _is_incoming_right(self, cur_center_coord, prev_center_coord):
-        l3_cur_sign, l3_prev_sign = get_object_location_signs(
-            self.l3_start,
-            self.l3_end,
-            cur_center_coord,
-            prev_center_coord
-        )
-        return ((is_object_in_polygon_area(cur_center_coord, self.C_polygon))
-                and is_object_going_up(l3_cur_sign, l3_prev_sign) is np.True_)
-
-    def _is_outgoing_right(self, cur_center_coord, prev_center_coord):
-        l3_cur_sign, l3_prev_sign = get_object_location_signs(
-            self.l3_start,
-            self.l3_end,
-            cur_center_coord,
-            prev_center_coord
-        )
-        return is_object_going_down(l3_cur_sign, l3_prev_sign) is np.True_
-
+    
     def _identity_polygon_area(self, cur_center_coord):
         areas = []
         if is_object_in_polygon_area(cur_center_coord, self.A_polygon):
@@ -1772,4 +1589,5 @@ direction_map = {
 
     
 }
+
 
