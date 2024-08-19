@@ -20,7 +20,6 @@ from .constants import (
     TEAM_GCP_PROJECT_ID,
     TEAM_GCS_BUCKET,
     OD_RAW_RESULTS_PATH,
-    U_TURNS,
     COLAB_RELEASE_TAG,
     FRAME_COL,
     TIMESTAMP_COL,
@@ -84,6 +83,7 @@ def extract_file_name_minus_extension(file_name: str) -> str:
 
 
 def construct_timestamp_from_file_name(file_name: str):
+    file_name = file_name.replace('&',':')
     _, timestamp_part = file_name.split("_time_")
     timestamp_part = timestamp_part.removesuffix(".mp4")
     timestamp_str, index = timestamp_part.split("_")
@@ -109,22 +109,6 @@ def draw_grid_with_coordinates(frame, step=50, color=(255, 255, 255), thickness=
         cv2.putText(frame, str(y), (0, y + 15), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness, cv2.LINE_AA)
 
     return frame
-
-
-def calculate_slope_and_intercept(starting_point, ending_point):
-    """
-    calculate the slope for the provided coordinates
-    of starting and ending points of the line
-    """
-    x1, y1 = starting_point
-    x2, y2 = ending_point
-    if x2 == x1:
-        slope = float("inf")
-        intercept = None
-    else:
-        slope = (y2 - y1) / (x2 - x1)
-        intercept = y1 - (slope * x1)
-    return slope, intercept
 
 
 def calculate_center_of_bounding_box(bounding_box):
@@ -158,13 +142,6 @@ def annotate_object_bounding_box(frame, bounding_box):
     cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), GREEN_RGB, 2)
 
 
-def annotate_crossing_line(frame, start_coordinates, end_coordinates, origin_coordinates, msg="Crossing Line"):
-    """
-    annotates the frame with a crossing line
-    """
-    cv2.line(frame, start_coordinates, end_coordinates, RED_RGB, 4)
-    cv2.putText(frame, msg, origin_coordinates, cv2.FONT_HERSHEY_SIMPLEX, 1, YELLOW_RGB, 2, cv2.LINE_AA)
-
 
 def annotate_detection_result(frame, detected_vehicles, offset, origin_coordinates, direction):
     """
@@ -178,41 +155,6 @@ def annotate_detection_result(frame, detected_vehicles, offset, origin_coordinat
         y_axis += offset
         msg = f"{key}: {value}"
         cv2.putText(frame, msg, (x_axis, y_axis), cv2.FONT_HERSHEY_DUPLEX, 1, YELLOW_RGB, 2, cv2.LINE_AA)
-
-
-def get_object_location_signs(start_coordinates, end_coordinates, cur_center_coordinates, prev_center_coordinates):
-    """
-    determines the sign of the object with respect to the provided
-    line coordinates from current frame and previous frame
-    """
-    slope, intercept = calculate_slope_and_intercept(start_coordinates, end_coordinates)
-    cur_x_center, cur_y_center = cur_center_coordinates
-    prev_x_center, prev_y_center = prev_center_coordinates
-
-    # handle vertical lines also
-    if slope == float("inf"):
-        current_sign = np.sign(cur_x_center - start_coordinates[0])
-        previous_sign = np.sign(prev_x_center - start_coordinates[0])
-    else:
-        current_sign = np.sign(cur_y_center - (slope * cur_x_center + intercept))
-        previous_sign = np.sign(prev_y_center - (slope * prev_x_center + intercept))
-    return current_sign, previous_sign
-
-
-def is_object_going_up(current_sign, previous_sign):
-    """
-    checks if the signature of object has changed in the recent
-    consecutive frames or if it has remained negative
-    """
-    return (current_sign != previous_sign) or (current_sign < 0 and previous_sign < 0)
-
-
-def is_object_going_down(current_sign, previous_sign):
-    """
-    checks if the signature of object has changed in the recent
-    consecutive frames or if it has remained positive
-    """
-    return (current_sign != previous_sign) or (current_sign > 0 and previous_sign > 0)
 
 
 def is_object_in_polygon_area(center_coordinates, polygon_points):
@@ -317,6 +259,3 @@ def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool, index:
         data_frame.to_csv(output_path)
 
 
-def is_u_turn(directions):
-    if (directions[0], directions[1]) in U_TURNS:
-        return True
