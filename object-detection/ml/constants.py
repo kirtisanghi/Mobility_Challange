@@ -8,6 +8,7 @@ OD_RAW_RESULTS_PATH = "object-detection/raw"
 RED_RGB = (0, 0, 255)
 YELLOW_RGB = (0, 255, 255)
 GREEN_RGB = (0, 255, 0)
+BLUE_RGB = (255, 0, 0)
 
 COLAB_RELEASE_TAG = "COLAB_RELEASE_TAG"
 
@@ -44,9 +45,9 @@ CAMERA_NAME_COL = "Camera Name"
 DETECTABLE_CLASSES = {
     # 0: "person",
     # 1: "bicycle",
-    # 2: "car",
-    # 3: "motorcycle",
-    # 5: "bus",
+      2: "car",
+      3: "motorcycle",
+      5: "bus",
     # 7: "truck",
     80: "IndianBicycle",
     81: "IndianBicyle",
@@ -59,6 +60,9 @@ DETECTABLE_CLASSES = {
 }
 
 VEHICLE_CLASS_MAP = {
+    "car":"oCar",
+    "motorcycle":"Motorcycle",
+    "bus":"oBus",    
     "IndianBicycle": "Bicycle",
     "IndianBus": "Bus",
     "IndianCar": "Cars",
@@ -68,6 +72,9 @@ VEHICLE_CLASS_MAP = {
     "IndianTruck": "Truck"
 }
 TARGET_CLASS_LIST = [
+    "car",
+    "motorcycle",
+    "bus",
     "IndianBicycle",
     "IndianBus",
     "IndianCar",
@@ -77,62 +84,25 @@ TARGET_CLASS_LIST = [
     "IndianTruck"
 ]
 
-GOING_UP = "Going Up"
-GOING_DOWN = "Going Down"
-GOING_LEFT = "Going Left"
-GOING_RIGHT = "Going Right"
+#Ramaiah fix1
 AB = "AB"
 BA = "BA"
+AC = "AC"
 
-# with resect to the leader board camera view of
-# Stn_HD_1, following directions are coded with
-# along with A, B, C, D, E, F (G and H if application)
-INCOMING_DOWN = "Incoming Down"
-INCOMING_UP = "Incoming Up"
-OUTGOING_DOWN = "Outgoing Down"
-OUTGOING_UP = "Outgoing Up"
-INCOMING_LEFT = "Incoming Left"
-INCOMING_RIGHT = "Incoming Right"
-OUTGOING_LEFT = "Outgoing Left"
-OUTGOING_RIGHT = "Outgoing Right"
+#Ramaiah fix2
+BC = "BC"
+BE = "BE"
+BG = "BG"
+DA = "DA"
+DE = "DE"
+DG = "DG"
+FA = "FA"
+FC = "FC"
+FG = "FG"
+HA = "HA"
+HC = "HC"
+HE = "HE"
 
-POSSIBLE_DIRECTIONS = [
-    (INCOMING_LEFT, OUTGOING_UP),  # BC
-    (INCOMING_LEFT, OUTGOING_RIGHT),  # BE
-    (INCOMING_LEFT, OUTGOING_DOWN),  # BG
-    (INCOMING_UP, OUTGOING_RIGHT),  # DE
-    (INCOMING_UP, OUTGOING_LEFT),  # DA
-    (INCOMING_UP, OUTGOING_DOWN),  # DH
-    (INCOMING_RIGHT, OUTGOING_LEFT),  # FA
-    (INCOMING_RIGHT, OUTGOING_UP),  # FC
-    (INCOMING_RIGHT, OUTGOING_DOWN),  # FH
-    (INCOMING_DOWN, OUTGOING_UP),  # GA
-    (INCOMING_DOWN, OUTGOING_LEFT),  # GC
-    (INCOMING_DOWN, OUTGOING_RIGHT),  # GE
-]
-
-POSSIBLE_DIRECTIONS_MAP = {
-    "0": f"{INCOMING_LEFT}->{OUTGOING_UP}",
-    "1": f"{INCOMING_LEFT}->{OUTGOING_RIGHT}",
-    "2": f"{INCOMING_LEFT}->{OUTGOING_DOWN}",
-    "3": f"{INCOMING_UP}->{OUTGOING_RIGHT}",
-    "4": f"{INCOMING_UP}->{OUTGOING_LEFT}",
-    "5": f"{INCOMING_UP}->{OUTGOING_DOWN}",
-    "6": f"{INCOMING_RIGHT}->{OUTGOING_LEFT}",
-    "7": f"{INCOMING_RIGHT}->{OUTGOING_UP}",
-    "8": f"{INCOMING_RIGHT}->{OUTGOING_DOWN}",
-    "9": f"{INCOMING_DOWN}->{OUTGOING_UP}",
-    "10": f"{INCOMING_DOWN}->{OUTGOING_LEFT}",
-    "11": f"{INCOMING_DOWN}->{OUTGOING_RIGHT}"
-}
-
-
-
-U_TURNS = [
-    (INCOMING_LEFT, OUTGOING_LEFT),
-    (INCOMING_UP, OUTGOING_UP),
-    (INCOMING_RIGHT, OUTGOING_RIGHT)
-]
 
 SEQUENCE_TO_TIME_MAP = {
     "000": "07:30:00",
@@ -156,5 +126,11 @@ POLYGON_4 = "pol4"
 
 POLYGON_A = "pol_a"
 POLYGON_B = "pol_b"
-
-RESOLUTION = (640,384)
+POLYGON_C = "pol_c"
+POLYGON_D = "pol_d"
+POLYGON_E = "pol_e"
+POLYGON_F = "pol_f"
+POLYGON_G = "pol_g"
+POLYGON_H = "pol_h"
+#RESOLUTION = (640,384)
+RESOLUTION = (1920,1080)
