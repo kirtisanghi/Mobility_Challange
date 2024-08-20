@@ -83,7 +83,6 @@ def extract_file_name_minus_extension(file_name: str) -> str:
 
 
 def construct_timestamp_from_file_name(file_name: str):
-    file_name = file_name.replace('&',':')
     _, timestamp_part = file_name.split("_time_")
     timestamp_part = timestamp_part.removesuffix(".mp4")
     timestamp_str, index = timestamp_part.split("_")
