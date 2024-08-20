@@ -109,7 +109,7 @@ class ObjectDetectionAndTracking(ABC):
         track = self.track_history[track_id]
         track.append(center_coordinates)
         if len(track) > 30:
-            logger.debug(f"{track_id} Removing this track-id")
+            #logger.debug(f"{track_id} Removing this track-id")
             track.popleft()
 
     def can_run_detection(self, track_id):
@@ -203,17 +203,36 @@ class DoubleLane(ObjectDetectionAndTracking):
         cv2.putText(frame, self.A_polygon_name, self.A_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.B_polygon_name, self.B_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)        
 
-    @abstractmethod
-    def update_polygon_track_history(self, track_id, center_coordinates):
-        pass 
 
-    @abstractmethod
-    def add_result_annotation(self, frame):
-        pass
-
-    @abstractmethod
     def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
-        pass
+        areas_undergone = self.polygon_track_history[track_id]
+        if (POLYGON_B in areas_undergone) and (POLYGON_A in areas_undergone):
+            if areas_undergone.index(POLYGON_B)<areas_undergone.index(POLYGON_A):
+                self._on_successful_tracking(frame, bounding_box, track_id, label, BA)
+            elif areas_undergone.index(POLYGON_B)>areas_undergone.index(POLYGON_A):
+                self._on_successful_tracking(frame, bounding_box, track_id, label, AB)
+
+    def update_polygon_track_history(self, track_id, center_coordinates):
+        polygons = self._identity_polygon_area(center_coordinates)
+        logger.debug(f"{polygons} polygons")
+        areas_undergone = self.polygon_track_history[track_id]
+        for polygon in polygons:
+            if polygon not in areas_undergone:
+                areas_undergone.append(polygon)
+        logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone")
+
+    def add_result_annotation(self, frame):
+        annotate_detection_result(frame, self.detected_vehicles, self.left_offset, self.left_result_origin, "AB")
+        annotate_detection_result(frame, self.detected_vehicles, self.right_offset, self.right_result_origin,"BA")
+        
+    def _identity_polygon_area(self, cur_center_coord):
+        areas = []
+        if is_object_in_polygon_area(cur_center_coord, self.A_polygon):
+            areas.append(POLYGON_A)
+
+        if is_object_in_polygon_area(cur_center_coord, self.B_polygon):
+            areas.append(POLYGON_B)
+        return areas
 
     def construct_tracker_dict(self):
         tracker = dict()
@@ -249,7 +268,7 @@ class MultiLane(ObjectDetectionAndTracking):
 
     def __init__(self):
         super().__init__()
-        self.l1_start = ()
+        """ self.l1_start = ()
         self.l1_end = ()
         self.l1_text = ()
 
@@ -263,7 +282,7 @@ class MultiLane(ObjectDetectionAndTracking):
 
         self.l4_start = ()
         self.l4_end = ()
-        self.l4_text = ()
+        self.l4_text = () """
 
         self.A_polygon = np.array([], np.int32)
         self.B_polygon = np.array([], np.int32)
@@ -362,7 +381,7 @@ class Camera2853(DoubleLane):
 
     def __init__(self):
         super().__init__()
-        self.A_polygon = np.array([[200,1], [600,1], [600,1000], [200,1000]], np.int32)
+        self.A_polygon = np.array([[200,1], [650,1], [650,1000], [200,1000]], np.int32)
         self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
         self.B_polygon = np.array([[700,1], [1400,1], [1400,1000], [700,1000]], np.int32)
         self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
@@ -377,43 +396,12 @@ class Camera2853(DoubleLane):
         self.detected_vehicles = self.construct_tracker_dict()
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
 
-    def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
-        areas_undergone = self.polygon_track_history[track_id]
-        if (POLYGON_B in areas_undergone) and (POLYGON_A in areas_undergone):
-            if areas_undergone.index(POLYGON_B)<areas_undergone.index(POLYGON_A):
-                self._on_successful_tracking(frame, bounding_box, track_id, label, BA)
-            elif areas_undergone.index(POLYGON_B)>areas_undergone.index(POLYGON_A):
-                self._on_successful_tracking(frame, bounding_box, track_id, label, AB)
-
-    def update_polygon_track_history(self, track_id, center_coordinates):
-        polygons = self._identity_polygon_area(center_coordinates)
-        logger.debug(f"{polygons} polygons")
-        areas_undergone = self.polygon_track_history[track_id]
-        for polygon in polygons:
-            if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
-        logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone")
-
-    def add_result_annotation(self, frame):
-        annotate_detection_result(frame, self.detected_vehicles, self.left_offset, self.left_result_origin, "AB")
-        annotate_detection_result(frame, self.detected_vehicles, self.right_offset, self.right_result_origin,"BA")
-        
-    def _identity_polygon_area(self, cur_center_coord):
-        areas = []
-        if is_object_in_polygon_area(cur_center_coord, self.A_polygon):
-            areas.append(POLYGON_A)
-
-        if is_object_in_polygon_area(cur_center_coord, self.B_polygon):
-            areas.append(POLYGON_B)
-        return areas
-
-
 #18th_Crs_BsStp_JN_FIX_2
 class Camera4936(DoubleLane):
     camera_name = "18th_Crs_BsStp_JN_FIX_2"
     camera_number = 4936
     site_id = 952
-    directions = [AB, BA]
+    directions = ["AB", "BA"]
 
     def __init__(self):
         super().__init__()
@@ -432,43 +420,12 @@ class Camera4936(DoubleLane):
         self.detected_vehicles = self.construct_tracker_dict()
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
 
-    def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
-        areas_undergone = self.polygon_track_history[track_id]
-        if (POLYGON_B in areas_undergone) and (POLYGON_A in areas_undergone):
-            if areas_undergone.index(POLYGON_B)<areas_undergone.index(POLYGON_A):
-                self._on_successful_tracking(frame, bounding_box, track_id, label, BA)
-            elif areas_undergone.index(POLYGON_B)>areas_undergone.index(POLYGON_A):
-                self._on_successful_tracking(frame, bounding_box, track_id, label, AB)
-
-    def update_polygon_track_history(self, track_id, center_coordinates):
-        polygons = self._identity_polygon_area(center_coordinates)
-        logger.debug(f"{polygons} polygons")
-        areas_undergone = self.polygon_track_history[track_id]
-        for polygon in polygons:
-            if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
-        logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone")
-
-    def add_result_annotation(self, frame):
-        annotate_detection_result(frame, self.detected_vehicles, self.left_offset, self.left_result_origin, AB)
-        annotate_detection_result(frame, self.detected_vehicles, self.right_offset, self.right_result_origin, BA)
-
-    def _identity_polygon_area(self, cur_center_coord):
-        areas = []
-        if is_object_in_polygon_area(cur_center_coord, self.A_polygon):
-            areas.append(POLYGON_A)
-
-        if is_object_in_polygon_area(cur_center_coord, self.B_polygon):
-            areas.append(POLYGON_B)
-        return areas
-
-
 #Devasandra_Sgnl_JN_FIX_1
 class Camera6170(DoubleLane):
     camera_name = "Devasandra_Sgnl_JN_FIX_1"
     camera_number = 6170
     site_id = 1132
-    directions = [AB, BA]
+    directions = ["AB", "BA"]
 
     def __init__(self):
         super().__init__()
@@ -482,40 +439,10 @@ class Camera6170(DoubleLane):
         
         self.left_result_origin = (100, 100)
         self.left_offset = 30
-        self.right_result_origin = (1650, 100)
+        self.right_result_origin = (1550, 100)
         self.right_offset = 30
         self.detected_vehicles = self.construct_tracker_dict()
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
-
-    def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
-        areas_undergone = self.polygon_track_history[track_id]
-        if (POLYGON_B in areas_undergone) and (POLYGON_A in areas_undergone):
-            if areas_undergone.index(POLYGON_B)<areas_undergone.index(POLYGON_A):
-                self._on_successful_tracking(frame, bounding_box, track_id, label, BA)
-            elif areas_undergone.index(POLYGON_B)>areas_undergone.index(POLYGON_A):
-                self._on_successful_tracking(frame, bounding_box, track_id, label, AB)
-
-    def update_polygon_track_history(self, track_id, center_coordinates):
-        polygons = self._identity_polygon_area(center_coordinates)
-        logger.debug(f"{polygons} polygons")
-        areas_undergone = self.polygon_track_history[track_id]
-        for polygon in polygons:
-            if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
-        logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone")
-
-    def add_result_annotation(self, frame):
-        annotate_detection_result(frame, self.detected_vehicles, self.left_offset, self.left_result_origin, AB)
-        annotate_detection_result(frame, self.detected_vehicles, self.right_offset, self.right_result_origin,BA)
-        
-    def _identity_polygon_area(self, cur_center_coord):
-        areas = []
-        if is_object_in_polygon_area(cur_center_coord, self.A_polygon):
-            areas.append(POLYGON_A)
-
-        if is_object_in_polygon_area(cur_center_coord, self.B_polygon):
-            areas.append(POLYGON_B)
-        return areas
 
 #SBI_Bnk_JN_FIX_3
 class Camera6179(DoubleLane):
@@ -536,44 +463,141 @@ class Camera6179(DoubleLane):
         self.B_polygon_name_coordinates = (550,500)
         
         self.left_result_origin = (100,100)
-        self.left_offset = 20
         self.right_result_origin = (1550, 100)
         self.left_offset = 30
         self.right_offset = 30
         self.detected_vehicles = self.construct_tracker_dict()
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
-
-    def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
-        areas_undergone = self.polygon_track_history[track_id]
-        if (POLYGON_B in areas_undergone) and (POLYGON_A in areas_undergone):
-            if areas_undergone.index(POLYGON_B)<areas_undergone.index(POLYGON_A):
-                self._on_successful_tracking(frame, bounding_box, track_id, label, BA)
-            elif areas_undergone.index(POLYGON_B)>areas_undergone.index(POLYGON_A):
-                self._on_successful_tracking(frame, bounding_box, track_id, label, AB)
-
-    def update_polygon_track_history(self, track_id, center_coordinates):
-        polygons = self._identity_polygon_area(center_coordinates)
-        logger.debug(f"{polygons} polygons")
-        areas_undergone = self.polygon_track_history[track_id]
-        for polygon in polygons:
-            if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
-        logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone")
-
-    def add_result_annotation(self, frame):
-        annotate_detection_result(frame, self.detected_vehicles, self.left_offset, self.left_result_origin, "AB")
-        annotate_detection_result(frame, self.detected_vehicles, self.right_offset, self.right_result_origin,"BA")
-        
     
-    def _identity_polygon_area(self, cur_center_coord):
-        areas = []
-        if is_object_in_polygon_area(cur_center_coord, self.A_polygon):
-            areas.append(POLYGON_A)
+#Sty_Wll_Ldge_FIX_3
+class Camera6162(DoubleLane):
+    camera_name = "Sty_Wll_Ldge_FIX_3"
+    camera_number = 6162
+    site_id = 1126
+    directions = ["AB","BA"]
 
-        if is_object_in_polygon_area(cur_center_coord, self.B_polygon):
-            areas.append(POLYGON_B)
-        return areas
-                             
+    def __init__(self):
+        super().__init__()
+        
+        self.A_polygon = np.array([[1,1], [1250,1], [1250,250], [1,250]], np.int32)
+        self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
+        self.B_polygon = np.array([[1,300], [1250,300], [1250,550], [1,550]], np.int32)
+        self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
+
+        self.A_polygon_name_coordinates = (1300,100)
+        self.B_polygon_name_coordinates = (1300,500)
+        
+        self.left_result_origin = (100, 100)
+        self.left_offset = 20
+        self.right_result_origin = (1650, 100)
+        self.right_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+   
+#Mattikere_JN_FIX_3
+class Camera8064(DoubleLane):
+    camera_name = "Mattikere_JN_FIX_3"
+    camera_number = 8064
+    site_id = 1210
+    directions = ["AB","BA"]
+
+    def __init__(self):
+        super().__init__()
+
+        self.A_polygon = np.array([[150,1], [650,1], [650,1000], [150,1000]], np.int32)
+        self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
+        
+        self.B_polygon = np.array([[700,1], [1800,1], [1800,1000], [700,1000]], np.int32)
+        self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
+
+        self.A_polygon_name_coordinates = (400,100)
+        self.B_polygon_name_coordinates = (1000,100)
+        
+        self.left_result_origin = (100, 100)
+        self.left_offset = 20
+        self.right_result_origin = (1650, 100)
+        self.right_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+    
+
+#Ayyappa_Temple_FIX_1
+class Camera6645(DoubleLane):
+    camera_name = "Ayyappa_Temple_FIX_1"
+    camera_number = 6645
+    site_id = 477
+    directions = ["AB","BA"]
+
+    def __init__(self):
+        super().__init__()
+       
+        self.A_polygon = np.array([[300,550], [1900,550], [1900,900], [300,900]], np.int32)
+        self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
+       
+        self.B_polygon = np.array([[300,100], [1900,100], [1900,500], [300,500]], np.int32)
+        self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
+
+        self.A_polygon_name_coordinates = (250,750)
+        self.B_polygon_name_coordinates = (250,450)
+        
+        self.left_result_origin = (100, 100)
+        self.left_offset = 20
+        self.right_result_origin = (1650, 100)
+        self.right_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+#Kuvempu_Circle_FIX_2
+class Camera2854(DoubleLane):
+    camera_name = "Kuvempu_Circle_FIX_2"
+    camera_number = 2854
+    site_id = 1354
+    directions = ["AB","BA"]
+
+    def __init__(self):
+        super().__init__()
+        self.A_polygon = np.array([[200,1], [700,1], [700,1000], [200,1000]], np.int32)
+        self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
+        
+        self.B_polygon = np.array([[900,1], [1800,1], [1800,1000], [900,1000]], np.int32)
+        self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
+
+        self.A_polygon_name_coordinates = (250,50)
+        self.B_polygon_name_coordinates = (850,50)
+        
+        self.left_result_origin = (100, 100)
+        self.left_offset = 20
+        self.right_result_origin = (1650, 100)
+        self.right_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+
+#HP_Ptrl_Bnk_BEL_Rd_FIX_2
+class Camera6164(DoubleLane):
+    camera_name = "HP_Ptrl_Bnk_BEL_Rd_FIX_2"
+    camera_number = 6164
+    site_id = 1127
+    directions = ["AB","BA"]
+
+    def __init__(self):
+        super().__init__()
+        self.A_polygon = np.array([[750,500], [1900,500], [1900,800], [750,800]], np.int32)
+        self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
+        
+        self.B_polygon = np.array([[600,50], [1900,50], [1900,450], [600,450]], np.int32)
+        self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
+
+        self.A_polygon_name_coordinates = (450,700)
+        self.B_polygon_name_coordinates = (450,200)
+        
+        self.left_result_origin = (100, 100)
+        self.left_offset = 20
+        self.right_result_origin = (1650, 100)
+        self.right_offset = 20
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
 
 #MS_Ramaiah_JN_FIX_2
 class Camera6166(MultiLane):
@@ -781,7 +805,6 @@ class Camera6166(MultiLane):
         if is_object_in_polygon_area(cur_center_coord, self.H_polygon):
             areas.append(POLYGON_H)
         return areas
-
 
 #MS_Ramaiah_JN_FIX_1
 class Camera6165(MultiLane):
@@ -1050,6 +1073,7 @@ class Camera8063(MultiLane):
 
         return areas
 
+
 #Devasandra_Sgnl_JN_FIX_3
 class Camera6172(MultiLane):
     """
@@ -1209,6 +1233,7 @@ class Camera6172(MultiLane):
             areas.append(POLYGON_D)
 
         return areas
+
 
 #SBI_Bnk_JN_FIX_1
 class Camera6177(MultiLane):
@@ -1371,6 +1396,355 @@ class Camera6177(MultiLane):
         return areas
 
 
+#Mattikere_JN_FIX_1
+class Camera8065(MultiLane):
+    """
+    Detection and evaluation rules
+    1. every vehicle has to cross 2 lines
+    2. incoming vehicles are considered as detected only when
+        it crosses the line and is part of its area polygon
+    3. outgoing vehicles are considered as detected sa soon
+        as it crosses the line
+    4. there are 2 additional trackers introduced for multi-lane
+        detection.
+        a. to keep track of polygon area crossed by each vehicle
+            throughout all the frames. this is tracked by default
+            for all the detected objects
+        b. to keep track of directions the vehicle is incoming from
+            or outgoing to. this is tracked only when the detected
+            object crosses the line
+    5. For all incoming vehicles, we simply add the direction to
+        the tracker as soon as it is detected and crossed
+    6. For all outgoing vehicles, the action are taken based on the
+        length of direction tracker for the specific detected object.
+        a. length of list is equals to 2 - Here we verify the directions
+            and if it is not a U-turn then mark it as detected and
+            add it to the counter. If its a U-turn then find out
+            that the object was first seen in which polygon area,
+            and accordingly it decides the direction and updates
+            counter
+        b. length of list is non equals to 2 ( 1 or 3 or greater)
+            Here also then it finds out that the object was first
+            seen in which polygon area, and accordingly it decides
+            the direction and updates counter
+    """
+    camera_name = "Mattikere_JN_FIX_1"
+    camera_number = 8065
+    site_id = 1210
+
+    directions = ["AB", "AD", "CA", "CD", "DA", "DB"]
+                
+    def __init__(self):
+        super().__init__()
+       
+        #self.A_polygon = np.array([[5,200], [400,200], [400,1050], [5,1050]], np.int32)
+        self.A_polygon = np.array([[0,50], [400,200], [400,1080], [0,1080]], np.int32)
+        self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
+
+        self.B_polygon = np.array([[450,150], [900,150], [900,300], [450,300]], np.int32)
+        self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
+
+        #self.C_polygon = np.array([[700,5], [1450,5], [1450,140], [700,199]], np.int32)
+        self.C_polygon = np.array([[950,200], [1400,300], [1550,550], [950,400]], np.int32)
+        self.C_polygon = self.C_polygon.reshape((-1, 1, 2))
+
+        self.D_polygon = np.array([[1600,450], [1920,400], [1920,1080], [1400,1080]], np.int32)
+        self.D_polygon = self.D_polygon.reshape((-1, 1, 2))
+        
+        self.A_polygon_name_coordinates = (50,250)
+        self.B_polygon_name_coordinates = (500,200)
+        self.C_polygon_name_coordinates = (1050,300)
+        self.D_polygon_name_coordinates = (1570,450)
+
+        #self.directions = ["AB", "AD", "CA", "CD", "DA", "DB"]
+
+        # Direction AB
+        self.dir1_result_origin = (100, 25)
+        self.dir1_offset = 25
+
+        # Direction CA
+        self.dir2_result_origin = (1200, 25)
+        self.dir2_offset = 25
+        # Direction CD
+        self.dir3_result_origin = (1500, 25)
+        self.dir3_offset = 25
+
+        # Direction AD
+        self.dir4_result_origin = (100, 700)
+        self.dir4_offset = 25
+
+        # Direction DA
+        self.dir5_result_origin = (1200, 700)
+        self.dir5_offset = 25
+        # Direction DB
+        self.dir6_result_origin = (1500, 700)
+        self.dir6_offset = 25
+
+
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+    def add_detection_annotation(self, frame):
+        
+        cv2.polylines(frame, [self.A_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.polylines(frame, [self.B_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.polylines(frame, [self.C_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.polylines(frame, [self.D_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+
+        cv2.putText(frame, self.A_polygon_name, self.A_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.B_polygon_name, self.B_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.C_polygon_name, self.C_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.D_polygon_name, self.D_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        
+    def add_result_annotation(self, frame):
+        annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, "AB")
+
+        annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir2_result_origin, "CA")
+        annotate_detection_result(frame, self.detected_vehicles, self.dir3_offset, self.dir3_result_origin, "CD")
+
+        annotate_detection_result(frame, self.detected_vehicles, self.dir4_offset, self.dir4_result_origin, "AD")
+
+        annotate_detection_result(frame, self.detected_vehicles, self.dir5_offset, self.dir5_result_origin, "DA")
+        annotate_detection_result(frame, self.detected_vehicles, self.dir6_offset, self.dir6_result_origin, "DB")
+                
+    def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
+        # get the polygons, the track-id went through.
+        # Get first and last polygon to identify direction
+        #polygons = self.polygon_track_history[track_id]
+        direction = ""
+        areas_undergone = self.polygon_track_history[track_id]
+        if len(areas_undergone)>1:
+            first_polygon = areas_undergone[0]
+            last_polygon = areas_undergone[-1]
+            try:
+                direction = direction_map[first_polygon + "->" + last_polygon]
+                if (direction not in self.directions):
+                    logger.debug(f"function: track_object- not a valid direction")
+                    return
+                
+                if (track_id in self.crossed_vehicles):
+                    if self.crossed_vehicles[track_id] == direction:
+                        logger.debug(f"function:track_object - {label}({track_id}) {direction} already detected and annotated for same direction")
+                    else:
+                        self._on_successful_tracking(frame, bounding_box, track_id, label, direction)
+                else:
+                        self._on_successful_tracking(frame, bounding_box, track_id, label, direction)
+            except KeyError:
+                logger.debug(f"function: track_object- {KeyError} KeyError")        
+        logger.debug(f"function: track_object- {track_id} track_id {areas_undergone} areas_undergone {direction} direction")
+        
+    def update_polygon_track_history(self, track_id, center_coordinates):
+        polygons = self._identity_polygon_area(center_coordinates)
+        areas_undergone = self.polygon_track_history[track_id]
+        for polygon in polygons:
+            if polygon not in areas_undergone:
+                areas_undergone.append(polygon)
+
+    def _identity_polygon_area(self, cur_center_coord):
+        areas = []
+        if is_object_in_polygon_area(cur_center_coord, self.A_polygon):
+            areas.append(POLYGON_A)
+
+        if is_object_in_polygon_area(cur_center_coord, self.B_polygon):
+            areas.append(POLYGON_B)
+
+        if is_object_in_polygon_area(cur_center_coord, self.C_polygon):
+            areas.append(POLYGON_C)
+
+        if is_object_in_polygon_area(cur_center_coord, self.D_polygon):
+            areas.append(POLYGON_D)
+
+        return areas
+
+
+#Stn_HD_1
+class Camera5816(MultiLane):
+    """
+    Detection and evaluation rules
+    1. every vehicle has to cross 2 lines
+    2. incoming vehicles are considered as detected only when
+        it crosses the line and is part of its area polygon
+    3. outgoing vehicles are considered as detected sa soon
+        as it crosses the line
+    4. there are 2 additional trackers introduced for multi-lane
+        detection.
+        a. to keep track of polygon area crossed by each vehicle
+            throughout all the frames. this is tracked by default
+            for all the detected objects
+        b. to keep track of directions the vehicle is incoming from
+            or outgoing to. this is tracked only when the detected
+            object crosses the line
+    5. For all incoming vehicles, we simply add the direction to
+        the tracker as soon as it is detected and crossed
+    6. For all outgoing vehicles, the action are taken based on the
+        length of direction tracker for the specific detected object.
+        a. length of list is equals to 2 - Here we verify the directions
+            and if it is not a U-turn then mark it as detected and
+            add it to the counter. If its a U-turn then find out
+            that the object was first seen in which polygon area,
+            and accordingly it decides the direction and updates
+            counter
+        b. length of list is non equals to 2 ( 1 or 3 or greater)
+            Here also then it finds out that the object was first
+            seen in which polygon area, and accordingly it decides
+            the direction and updates counter
+    """
+    camera_name = "Stn_HD_1"
+    camera_number = 5816
+    site_id = 478
+
+    directions = [ "BC", "BE", "DE", "DA", "FA", "FC"]
+    incoming_direction_notAllowed = [POLYGON_A,POLYGON_E,POLYGON_C]
+
+    def __init__(self):
+        super().__init__()
+       
+        #self.A_polygon = np.array([[5,200], [400,200], [400,1050], [5,1050]], np.int32)
+        #self.A_polygon = np.array([[0,350], [350,350], [350,1080], [0,1080]], np.int32)
+        self.A_polygon = np.array([[0,200], [350,200], [350,1080], [0,1080]], np.int32)
+        self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
+
+        self.B_polygon = np.array([[0,0], [400,0], [400,340], [0,340]], np.int32)
+        self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
+
+        #self.C_polygon = np.array([[700,5], [1450,5], [1450,140], [700,199]], np.int32)
+        self.C_polygon = np.array([[401,0], [1000,0], [950,200], [401,200]], np.int32)
+        self.C_polygon = self.C_polygon.reshape((-1, 1, 2))
+
+        self.D_polygon = np.array([[1050,0], [1650,0], [1650,200], [900,350]], np.int32)
+        self.D_polygon = self.D_polygon.reshape((-1, 1, 2))
+
+        self.E_polygon = np.array([[1700,0], [1920,0], [1920,450], [1700,450]], np.int32)
+        self.E_polygon = self.E_polygon.reshape((-1, 1, 2))
+
+        self.F_polygon = np.array([[1400,250], [1920,250], [1920,1080], [1400,1080]], np.int32)
+        self.F_polygon = self.F_polygon.reshape((-1, 1, 2))
+        
+        self.A_polygon_name_coordinates = (50,400)
+        self.B_polygon_name_coordinates = (50,50)
+        self.C_polygon_name_coordinates = (451,50)
+        self.D_polygon_name_coordinates = (1100,50)
+        self.E_polygon_name_coordinates = (1750,50)
+        self.F_polygon_name_coordinates = (1450,500)
+
+        #self.directions = ["AB", "AD", "CA", "CD", "DA", "DB"]
+
+        # Direction BC
+        self.dir1_result_origin = (100, 25)
+        self.dir1_offset = 25
+
+        # Direction BE
+        self.dir2_result_origin = (1200, 25)
+        self.dir2_offset = 25
+        # Direction DE
+        self.dir3_result_origin = (1500, 25)
+        self.dir3_offset = 25
+
+        # Direction DA
+        self.dir4_result_origin = (100, 700)
+        self.dir4_offset = 25
+
+        # Direction FA
+        self.dir5_result_origin = (1200, 700)
+        self.dir5_offset = 25
+        # Direction FC
+        self.dir6_result_origin = (1500, 700)
+        self.dir6_offset = 25
+
+
+        self.detected_vehicles = self.construct_tracker_dict()
+        self.detected_vehicles_in_frame = self.construct_tracker_dict()
+
+    def add_detection_annotation(self, frame):
+        
+        cv2.polylines(frame, [self.A_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.polylines(frame, [self.B_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.polylines(frame, [self.C_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.polylines(frame, [self.D_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.polylines(frame, [self.E_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.polylines(frame, [self.F_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+
+        cv2.putText(frame, self.A_polygon_name, self.A_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.B_polygon_name, self.B_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.C_polygon_name, self.C_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.D_polygon_name, self.D_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.E_polygon_name, self.E_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, self.F_polygon_name, self.F_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+        
+    def add_result_annotation(self, frame):
+        annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, "BC")
+
+        annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir2_result_origin, "BE")
+        annotate_detection_result(frame, self.detected_vehicles, self.dir3_offset, self.dir3_result_origin, "DE")
+
+        annotate_detection_result(frame, self.detected_vehicles, self.dir4_offset, self.dir4_result_origin, "DA")
+
+        annotate_detection_result(frame, self.detected_vehicles, self.dir5_offset, self.dir5_result_origin, "FA")
+        annotate_detection_result(frame, self.detected_vehicles, self.dir6_offset, self.dir6_result_origin, "FC")
+                
+    def track_object(self, frame, bounding_box, label, track_id, cur_center_coord):
+        # get the polygons, the track-id went through.
+        # Get first and last polygon to identify direction
+        #polygons = self.polygon_track_history[track_id]
+        direction = ""
+        areas_undergone = self.polygon_track_history[track_id]
+        if len(areas_undergone)>1:
+            first_polygon = areas_undergone[0]
+            last_polygon = areas_undergone[-1]
+            try:
+                direction = direction_map[first_polygon + "->" + last_polygon]
+                if (direction not in self.directions):
+                    logger.debug(f"function: track_object- not a valid direction")
+                    return
+                
+                if (track_id in self.crossed_vehicles):
+                    if self.crossed_vehicles[track_id] == direction:
+                        logger.debug(f"function:track_object - {label}({track_id}) {direction} already detected and annotated for same direction")
+                    else:
+                        self._on_successful_tracking(frame, bounding_box, track_id, label, direction)
+                else:
+                        self._on_successful_tracking(frame, bounding_box, track_id, label, direction)
+                logger.debug(f"function: track_object- {track_id} track_id {areas_undergone} areas_undergone {direction} direction")
+            except KeyError:
+                logger.debug(f"function: track_object- {KeyError} KeyError")        
+        
+        
+    def update_polygon_track_history(self, track_id, center_coordinates):
+        polygons = self._identity_polygon_area(center_coordinates)
+        areas_undergone = self.polygon_track_history[track_id]
+        logger.debug(f"function:update_polygon_track_history - center_coordinates {center_coordinates} polygons {polygons} areas_undergone {areas_undergone} track_id {track_id}")
+        for polygon in polygons:            
+            logger.debug(f"function:update_polygon_track_history - len(areas_undergone) {len(areas_undergone)}  polygon in self.incoming_direction_notAllowed {polygon in self.incoming_direction_notAllowed})")
+            if (len(areas_undergone) == 0) and (polygon in self.incoming_direction_notAllowed):
+                logger.debug(f"function:update_polygon_track_history - Rejecting polygon {polygon} for  track-id {track_id} ")
+                continue
+            if polygon not in areas_undergone:
+                areas_undergone.append(polygon)
+                logger.debug(f"function:update_polygon_track_history - polygon {polygon} appended to areas_undergone {areas_undergone}")
+
+    def _identity_polygon_area(self, cur_center_coord):
+        areas = []
+        if is_object_in_polygon_area(cur_center_coord, self.A_polygon):            
+            areas.append(POLYGON_A)
+
+        if is_object_in_polygon_area(cur_center_coord, self.B_polygon):
+            areas.append(POLYGON_B)
+
+        if is_object_in_polygon_area(cur_center_coord, self.C_polygon):
+            areas.append(POLYGON_C)
+
+        if is_object_in_polygon_area(cur_center_coord, self.D_polygon):
+            areas.append(POLYGON_D)
+
+        if is_object_in_polygon_area(cur_center_coord, self.E_polygon):
+            areas.append(POLYGON_E)
+
+        if is_object_in_polygon_area(cur_center_coord, self.F_polygon):
+            areas.append(POLYGON_F)
+
+        return areas
+
+
 #18th_Crs_Bus_Stop_FIX_2--To be completed
 class Camera4896(MultiLane):
     """
@@ -1493,6 +1867,7 @@ class Camera4896(MultiLane):
             last_polygon = areas_undergone[-1]
             try:
                 direction = direction_map[first_polygon + "->" + last_polygon]
+            
                 if (track_id in self.crossed_vehicles):
                     if self.crossed_vehicles[track_id] == direction:
                         logger.debug(f"function:track_object- {label}({track_id}) {direction} already detected and annotated for same direction")
@@ -1500,9 +1875,10 @@ class Camera4896(MultiLane):
                         self._on_successful_tracking(frame, bounding_box, track_id, label, direction)
                 else:
                         self._on_successful_tracking(frame, bounding_box, track_id, label, direction)
+                logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone {direction} direction")
             except KeyError:
                 logger.debug(f"{KeyError} KeyError")        
-        logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone {direction} direction")
+        
         
     def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
@@ -1529,13 +1905,16 @@ class Camera4896(MultiLane):
 
 detection_class_map = {
 
-    # single lane camera views
+    # double lane camera views
     #"18th_Crs_BsStp_JN_FIX_1": Camera4935,
     #"18th_Crs_Bus_Stop_FIX_1": Camera4895,
     "Kuvempu_Circle_FIX_1": Camera2853,
-    #"Kuvempu_Circle_FIX_2": Camera2854,
-
-    # double lane camera views
+    "Kuvempu_Circle_FIX_2": Camera2854,
+    "Sty_Wll_Ldge_FIX_3" :Camera6162,
+    "Mattikere_JN_FIX_3":Camera8064,
+    "Ayyappa_Temple_FIX_1":Camera6645,
+    "HP_Ptrl_Bnk_BEL_Rd_FIX_2":Camera6164,
+    
     "18th_Crs_BsStp_JN_FIX_2": Camera4936,
     #"Ayyappa_Temple_FIX_1": Camera6645,
     "Devasandra_Sgnl_JN_FIX_1": Camera6170,
@@ -1543,15 +1922,17 @@ detection_class_map = {
     "SBI_Bnk_JN_FIX_3":Camera6179,
 
     # multi lane camera views
-    #"Stn_HD_1": Camera5816,
+    "Stn_HD_1": Camera5816,
     "MS_Ramaiah_JN_FIX_1": Camera6165,
     "MS_Ramaiah_JN_FIX_2": Camera6166,
 
     "Mattikere_JN_FIX_2": Camera8063,
 
     "18th_Crs_Bus_Stop_FIX_2": Camera4896,
+    "Mattikere_JN_FIX_1": Camera8065,
     "Devasandra_Sgnl_JN_FIX_3": Camera6172,
-    "SBI_Bnk_JN_FIX_1": Camera6177
+    "SBI_Bnk_JN_FIX_1": Camera6177,
+    
 
 }
 
@@ -1589,5 +1970,6 @@ direction_map = {
 
     
 }
+
 
 
