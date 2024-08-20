@@ -86,13 +86,14 @@ def detect_and_track(video_path: str, file_name: str):
     else:
         video_start_time_stamp = construct_timestamp_from_file_name(file_name)
 
+    #logger.debug(f"detection_class_map[camera_name]: {detection_class_map[camera_name]}")
     try:
         detection_class = detection_class_map[camera_name]
     except KeyError:
-        exit(f"Camera \"{camera_name}\" is yet to be not onboarded to this script!")
+        exit(f"Camera \"{camera_name}\" is yet to be onboarded to this script!")
 
     detection_class_obj = detection_class()
-
+    logger.debug(f"detection_class_obj: {detection_class_obj}")
     # Load the YOLOv8 model
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     logger.debug(f"Computation Device: {device}")
@@ -120,14 +121,15 @@ def detect_and_track(video_path: str, file_name: str):
             # add the time milliseconds to the video starting
             # timestamp to get current timestamp
             frame_time_stamp = video_start_time_stamp + td(milliseconds=milliseconds_passed)
-
+            logger.debug(f"frame_time_stamp: {frame_time_stamp}")
             # Run object tracking using yolo model on the frame,
             # persisting tracks between frames
             results = model.track(frame, conf=0.7, iou=0.5, persist=True, classes=list(DETECTABLE_CLASSES.keys()))
 
             # add grid to the image frame
-            # frame = draw_grid_with_coordinates(frame)
+            frame = draw_grid_with_coordinates(frame)
 
+            
             if environmental_variable_is_present(SHOW_DETECTION_ANNOTATIONS):
                 detection_class_obj.add_detection_annotation(frame)
 
@@ -161,14 +163,15 @@ def detect_and_track(video_path: str, file_name: str):
                 logger.info(f"Frame Number: {frame_number}, Objects Detected: {len(labels)}")
 
                 # Visualize the results on the frame
-                # annotated_frame = result.plot()
+                annotated_frame = result.plot()
 
                 # combine the bounding boxes, confidence score, label and
                 # track id of all the detected objects in the current frame
                 # and loop through it for further processing
+                #logger.info(f"TARGET_CLASS_LIST: {TARGET_CLASS_LIST}")
                 for bounding_box, track_id, score, label_id in zip(bounding_boxes, track_ids, scores, labels):
                     label = trained_object_map[label_id]
-
+                    
                     if label in TARGET_CLASS_LIST:
                         label = VEHICLE_CLASS_MAP.get(label)
                         obj_identifier = f"{track_id}: {label}"
@@ -181,20 +184,20 @@ def detect_and_track(video_path: str, file_name: str):
                         annotate_object_center(frame, obj_identifier, center_coordinates)
 
                         if track_id in detection_class_obj.crossed_vehicles:
-                            logger.debug(f"object {label}({track_id}) already detected and annotated")
+                            #logger.debug(f"object {label}({track_id}) already detected and annotated")
                             annotate_object_bounding_box(frame, bounding_box)
+                        
+                        if detection_class_obj.can_run_detection(track_id):
+                            logger.debug(f"running object tracker on {label}({track_id}) | score {score}")
+                            detection_class_obj.track_object(
+                                frame,
+                                bounding_box,
+                                label,
+                                track_id,
+                                center_coordinates
+                            )
                         else:
-                            if detection_class_obj.can_run_detection(track_id):
-                                logger.debug(f"running object tracker on {label}({track_id}) | score {score}")
-                                detection_class_obj.track_object(
-                                    frame,
-                                    bounding_box,
-                                    label,
-                                    track_id,
-                                    center_coordinates
-                                )
-                            else:
-                                logger.debug(f"object {label}({track_id}) not detected in enough frames(2)")
+                            logger.debug(f"object {label}({track_id}) not detected in enough frames(2)")
                     else:
                         logger.debug(f"object {label}({track_id}) not a target object class, skipping")
 
@@ -234,3 +237,4 @@ def detect_and_track(video_path: str, file_name: str):
         grouping_key
     )
     return camera_name, sampled_and_aggregated_data
+
