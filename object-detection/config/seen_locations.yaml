@@ -78,6 +78,12 @@ locations:
     longitude: 77.561301
     site_id: 1354
   - area: YESHWANTHPURA
+    camera_name: Mattikere_JN_FIX_1
+    camera_number: 8063_1
+    latitude: 13.02718223
+    longitude: 77.558402
+    site_id: 1210
+  - area: YESHWANTHPURA
     camera_name: Mattikere_JN_FIX_2
     camera_number: 8063
     latitude: 13.02718223
