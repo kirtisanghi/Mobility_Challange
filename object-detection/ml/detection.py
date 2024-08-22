@@ -19,8 +19,7 @@ from .constants import (
     VEHICLE_CLASS_MAP,    
     AB,
     BA,
-    AC,
-    
+    AC,    
     BC, 
     BE, 
     BG, 
@@ -350,9 +349,9 @@ class MultiLane(ObjectDetectionAndTracking):
 
 
     @abstractmethod
-    def add_detection_annotation(self, frame):
-        pass
-
+    def add_detection_annotation(self, frame):        
+        pass        
+ 
     @abstractmethod
     def add_result_annotation(self, frame):
         pass
@@ -367,10 +366,16 @@ class MultiLane(ObjectDetectionAndTracking):
             tracker[direction] = {VEHICLE_CLASS_MAP[label]: 0 for label in TARGET_CLASS_LIST}
         return tracker
 
-    @abstractmethod
+    """ @abstractmethod
     def update_polygon_track_history(self, track_id, center_coordinates):
-        pass
+        pass """
     
+    def update_polygon_track_history(self, track_id, center_coordinates):
+        polygons = self._identity_polygon_area(center_coordinates)
+        areas_undergone = self.polygon_track_history[track_id]
+        for polygon in polygons:
+            if polygon not in areas_undergone:
+                areas_undergone.append(polygon)
 
 #Kuvempu_Circle_FIX_1
 class Camera2853(DoubleLane):
@@ -787,7 +792,7 @@ class Camera6166(MultiLane):
         cv2.putText(frame, self.G_polygon_name, self.G_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.H_polygon_name, self.H_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         #cv2.polylines(frame, [self.C_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
-
+ 
     def add_result_annotation(self, frame):
         annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, BC)
         annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir2_result_origin, FC)
@@ -823,12 +828,12 @@ class Camera6166(MultiLane):
                 logger.debug(f"{KeyError} KeyError")        
         logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone {direction} direction")
         
-    def update_polygon_track_history(self, track_id, center_coordinates):
+    """ def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
         areas_undergone = self.polygon_track_history[track_id]
         for polygon in polygons:
             if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
+                areas_undergone.append(polygon) """
 
     def _identity_polygon_area(self, cur_center_coord):
         areas = []
@@ -929,7 +934,7 @@ class Camera6165(MultiLane):
         cv2.putText(frame, self.A_polygon_name, self.A_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.B_polygon_name, self.B_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.C_polygon_name, self.C_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
-
+ 
     def add_result_annotation(self, frame):
         annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, "AC")
         annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir2_result_origin, "AB")
@@ -953,12 +958,12 @@ class Camera6165(MultiLane):
         logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone")
             
 
-    def update_polygon_track_history(self, track_id, center_coordinates):
+    """ def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
         areas_undergone = self.polygon_track_history[track_id]
         for polygon in polygons:
             if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
+                areas_undergone.append(polygon) """
 
     
     def _identity_polygon_area(self, cur_center_coord):
@@ -1101,12 +1106,12 @@ class Camera8063(MultiLane):
                 logger.debug(f"{KeyError} KeyError")        
         logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone {direction} direction")
         
-    def update_polygon_track_history(self, track_id, center_coordinates):
+    """ def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
         areas_undergone = self.polygon_track_history[track_id]
         for polygon in polygons:
             if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
+                areas_undergone.append(polygon) """
 
     def _identity_polygon_area(self, cur_center_coord):
         areas = []
@@ -1213,7 +1218,7 @@ class Camera6172(MultiLane):
         self.detected_vehicles = self.construct_tracker_dict()
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
 
-    def add_detection_annotation(self, frame):
+    """ def add_detection_annotation(self, frame):
         
         cv2.polylines(frame, [self.A_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
         cv2.polylines(frame, [self.B_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
@@ -1224,7 +1229,7 @@ class Camera6172(MultiLane):
         cv2.putText(frame, self.B_polygon_name, self.B_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.C_polygon_name, self.C_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.D_polygon_name, self.D_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
-        
+ """        
     def add_result_annotation(self, frame):
         annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, "AB")
 
@@ -1262,12 +1267,12 @@ class Camera6172(MultiLane):
                 logger.debug(f"function: track_object- {KeyError} KeyError")        
         logger.debug(f"function: track_object- {track_id} track_id {areas_undergone} areas_undergone {direction} direction")
         
-    def update_polygon_track_history(self, track_id, center_coordinates):
+    """ def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
         areas_undergone = self.polygon_track_history[track_id]
         for polygon in polygons:
             if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
+                areas_undergone.append(polygon) """
 
     def _identity_polygon_area(self, cur_center_coord):
         areas = []
@@ -1385,7 +1390,7 @@ class Camera6177(MultiLane):
         cv2.putText(frame, self.B_polygon_name, self.B_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.C_polygon_name, self.C_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         #cv2.putText(frame, self.D_polygon_name, self.D_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
-        
+ 
     def add_result_annotation(self, frame):
         annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, "BA")
 
@@ -1423,12 +1428,12 @@ class Camera6177(MultiLane):
                 logger.debug(f"function: track_object- {KeyError} KeyError")        
         logger.debug(f"function: track_object- {track_id} track_id {areas_undergone} areas_undergone {direction} direction")
         
-    def update_polygon_track_history(self, track_id, center_coordinates):
+    """ def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
         areas_undergone = self.polygon_track_history[track_id]
         for polygon in polygons:
             if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
+                areas_undergone.append(polygon) """
 
     def _identity_polygon_area(self, cur_center_coord):
         areas = []
@@ -1584,12 +1589,12 @@ class Camera8063_1(MultiLane):
                 logger.debug(f"function: track_object- {KeyError} KeyError")        
         logger.debug(f"function: track_object- {track_id} track_id {areas_undergone} areas_undergone {direction} direction")
         
-    def update_polygon_track_history(self, track_id, center_coordinates):
+    """ def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
         areas_undergone = self.polygon_track_history[track_id]
         for polygon in polygons:
             if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
+                areas_undergone.append(polygon) """
 
     def _identity_polygon_area(self, cur_center_coord):
         areas = []
@@ -1705,6 +1710,7 @@ class Camera5816(MultiLane):
 
         self.detected_vehicles = self.construct_tracker_dict()
         self.detected_vehicles_in_frame = self.construct_tracker_dict()
+        
 
     def add_detection_annotation(self, frame):
         
@@ -1892,7 +1898,7 @@ class Camera4896(MultiLane):
         cv2.putText(frame, self.C_polygon_name, self.C_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.D_polygon_name, self.D_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.E_polygon_name, self.E_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
-        
+ 
     def add_result_annotation(self, frame):
         annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, "AB")
         annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir2_result_origin, "AD")
@@ -2081,12 +2087,12 @@ class Camera8065(MultiLane):
                 logger.debug(f"{KeyError} KeyError")        
         logger.debug(f"{track_id} track_id {areas_undergone} areas_undergone {direction} direction")
 
-    def update_polygon_track_history(self, track_id, center_coordinates):
+    """ def update_polygon_track_history(self, track_id, center_coordinates):
         polygons = self._identity_polygon_area(center_coordinates)
         areas_undergone = self.polygon_track_history[track_id]
         for polygon in polygons:
             if polygon not in areas_undergone:
-                areas_undergone.append(polygon)
+                areas_undergone.append(polygon) """
 
     def _identity_polygon_area(self, cur_center_coord):
         areas = []
