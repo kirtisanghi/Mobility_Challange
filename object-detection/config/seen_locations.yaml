@@ -143,3 +143,39 @@ locations:
     latitude: 13.011451
     longitude: 77.568785
     site_id: 954
+  - area: MALLESWARAM
+    camera_name: Dari_Anjaneya_Temple
+    camera_number: 123
+    latitude: 13.011451
+    longitude: 77.568785
+    site_id: 954
+  -  area: MALLESWARAM
+    camera_name: Nanjudi_House
+    camera_number: 1128
+    latitude: 13.011451
+    longitude: 77.568785
+    site_id: 954
+  - area: MALLESWARAM
+    camera_name: Buddha_Vihara_Temple
+    camera_number: 507
+    latitude: 13.011451
+    longitude: 77.568785
+    site_id: 954
+  - area: MALLESWARAM
+    camera_name: Sundaranagar_Entrance
+    camera_number: 1348
+    latitude: 13.011451
+    longitude: 77.568785
+    site_id: 954
+  - area: MALLESWARAM
+    camera_name: ISRO_Junction
+    camera_number: 5_unseen
+    latitude: 13.011451
+    longitude: 77.568785
+    site_id: 954
+  - area: MALLESWARAM
+    camera_name: 80ft_Road
+    camera_number: 6_unseen
+    latitude: 13.011451
+    longitude: 77.568785
+    site_id: 954  

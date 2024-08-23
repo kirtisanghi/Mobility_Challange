@@ -25,7 +25,8 @@ from .constants import (
     TIMESTAMP_COL,
     CAMERA_NAME_COL,
     TURNING_PATTERN_COL,
-    VERBOSE_LOGGING
+    VERBOSE_LOGGING,
+    RUNNING_IN_LOCAL
 )
 
 # setup the logger
@@ -83,6 +84,9 @@ def extract_file_name_minus_extension(file_name: str) -> str:
 
 
 def construct_timestamp_from_file_name(file_name: str):
+    if environmental_variable_is_present(RUNNING_IN_LOCAL):
+        file_name = file_name.replace('&',':')
+
     _, timestamp_part = file_name.split("_time_")
     timestamp_part = timestamp_part.removesuffix(".mp4")
     timestamp_str, index = timestamp_part.split("_")
@@ -178,6 +182,8 @@ def sample_and_aggregate_data(time_series_data: list, camera_name: str, grouping
     # drop frame column
     data_frame.drop(columns=[FRAME_COL], inplace=True)
 
+    process_dataframe(data_frame)
+
     # convert timestamp column into datetime type
     data_frame[TIMESTAMP_COL] = pd.to_datetime(data_frame[TIMESTAMP_COL])
 
@@ -257,4 +263,54 @@ def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool, index:
     else:
         data_frame.to_csv(output_path)
 
+
+def process_dataframe(time_series_df:pd.DataFrame):
+    grouped_data = time_series_df.groupby(TURNING_PATTERN_COL)    
+
+    #Get the count of car, oCar, Two-Wheeler,Motorcycle and bus,oBus for the turning patterns
+    #car is the class from customized yolo while oCar is original yolo class. Same for two-wheeler and bus also
+    turningpattern_car_count = grouped_data["Cars"].sum()
+    turningpattern_ocar_count = grouped_data["oCar"].sum()
+    turningpattern_TwoWheeler_count = grouped_data["Two-Wheeler"].sum()
+    turningpattern_Motorcycle_count = grouped_data["Motorcycle"].sum()
+    turningpattern_bus_count = grouped_data["Bus"].sum()
+    turningpattern_obus_count = grouped_data["oBus"].sum()
+
+    carcount = turningpattern_car_count.to_frame()
+    ocarcount = turningpattern_ocar_count.to_frame()
+    carcount["car_diff"] = carcount["Cars"] - ocarcount["oCar"]
+
+    twoWheeler_count = turningpattern_TwoWheeler_count.to_frame()
+    motorCycle_count = turningpattern_Motorcycle_count.to_frame()
+    twoWheeler_count["twoWheeler_diff"] = twoWheeler_count["Two-Wheeler"] - motorCycle_count["Motorcycle"]
+
+    bus_count = turningpattern_bus_count.to_frame()
+    obus_count = turningpattern_obus_count.to_frame()
+    bus_count["bus_diff"] = bus_count["Bus"] - obus_count["oBus"]
+
+    #If, for a specific turning pattern, count is more for original Yolo class than customized yolo class, it means original 
+    #Yolo class is working better for the particular direction. So use that data instead
+    for key,value in carcount.iterrows():
+        turning_pattern = key
+        row_values = value
+        print(row_values["car_diff"])
+        if (row_values["car_diff"]<0):
+            time_series_df["Cars"] = np.where((time_series_df["Turning Pattern"] == turning_pattern), time_series_df["oCar"], time_series_df["Cars"])
+
+    for key,value in twoWheeler_count.iterrows():
+        turning_pattern = key
+        row_values = value
+        print(row_values["twoWheeler_diff"])
+        if (row_values["twoWheeler_diff"]<0):
+            time_series_df["Two-Wheeler"] = np.where((time_series_df["Turning Pattern"] == turning_pattern), time_series_df["Motorcycle"], time_series_df["Two-Wheeler"])
+
+    for key,value in bus_count.iterrows():
+        turning_pattern = key
+        row_values = value
+        print(row_values["bus_diff"])
+        if (row_values["bus_diff"]<0):
+            time_series_df["Bus"] = np.where((time_series_df["Turning Pattern"] == turning_pattern), time_series_df["oBus"], time_series_df["Bus"])
+
+    #Finally remove the original YOLO data from dataframe
+    time_series_df.drop(columns=["oCar","Motorcycle","oBus"],axis=1,inplace=True)
 

@@ -84,25 +84,6 @@ TARGET_CLASS_LIST = [
     "IndianTruck"
 ]
 
-#Ramaiah fix1
-AB = "AB"
-BA = "BA"
-AC = "AC"
-
-#Ramaiah fix2
-BC = "BC"
-BE = "BE"
-BG = "BG"
-DA = "DA"
-DE = "DE"
-DG = "DG"
-FA = "FA"
-FC = "FC"
-FG = "FG"
-HA = "HA"
-HC = "HC"
-HE = "HE"
-
 
 SEQUENCE_TO_TIME_MAP = {
     "000": "07:30:00",
