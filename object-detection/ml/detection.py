@@ -1606,17 +1606,17 @@ class Camera123(MultiLane):
         self.A_polygon = np.array([[5,50], [500,50], [500,400], [5,400]], np.int32)
         self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
 
-        self.B_polygon = np.array([[505,50], [1100,50], [1100,400], [505,400]], np.int32)
+        self.B_polygon = np.array([[510,50], [1100,50], [1100,400], [510,400]], np.int32)
         self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
 
-        self.C_polygon = np.array([[1300,200], [1980,200], [1980,800], [1300,800]], np.int32)
+        self.C_polygon = np.array([[1300,100], [1980,100], [1980,700], [1300,700]], np.int32)
         self.C_polygon = self.C_polygon.reshape((-1, 1, 2))
 
         self.D_polygon = np.array([[5,600], [1920,600], [1920,1080], [5,1080]], np.int32)
         self.D_polygon = self.D_polygon.reshape((-1, 1, 2))
         
         self.A_polygon_name_coordinates = (50,250)
-        self.B_polygon_name_coordinates = (300,200)
+        self.B_polygon_name_coordinates = (570,250)
         self.C_polygon_name_coordinates = (1570,450)
         self.D_polygon_name_coordinates = (900,900)
         
@@ -1652,10 +1652,10 @@ class Camera123(MultiLane):
         
     def add_result_annotation(self, frame):
         annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, "AD")        
-        annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir3_result_origin, "AC")
-        annotate_detection_result(frame, self.detected_vehicles, self.dir3_offset, self.dir4_result_origin, "CD")
-        annotate_detection_result(frame, self.detected_vehicles, self.dir4_offset, self.dir5_result_origin, "BC")
-        annotate_detection_result(frame, self.detected_vehicles, self.dir5_offset, self.dir6_result_origin, "BD")
+        annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir2_result_origin, "AC")
+        annotate_detection_result(frame, self.detected_vehicles, self.dir3_offset, self.dir3_result_origin, "CD")
+        annotate_detection_result(frame, self.detected_vehicles, self.dir4_offset, self.dir4_result_origin, "BC")
+        annotate_detection_result(frame, self.detected_vehicles, self.dir5_offset, self.dir5_result_origin, "BD")
               
    
     def _identity_polygon_area(self, cur_center_coord):
@@ -1686,17 +1686,17 @@ class Camera1128(MultiLane):
     def __init__(self):
         super().__init__()
        
-        self.A_polygon = np.array([[400,200], [800,200], [800,600], [400,600]], np.int32)
+        self.A_polygon = np.array([[50,100], [700,100], [700,600], [50,600]], np.int32)
         self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
 
-        self.B_polygon = np.array([[450,150], [1800,150], [1800,800], [450,800]], np.int32)
+        self.B_polygon = np.array([[800,150], [1800,150], [1800,650], [800,650]], np.int32)
         self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
 
-        self.C_polygon = np.array([[5,805], [1980,805], [1980,1000], [5,1000]], np.int32)
+        self.C_polygon = np.array([[5,720], [1980,720], [1980,1000], [5,1000]], np.int32)
         self.C_polygon = self.C_polygon.reshape((-1, 1, 2))       
         
         self.A_polygon_name_coordinates = (50,250)
-        self.B_polygon_name_coordinates = (500,200)
+        self.B_polygon_name_coordinates = (700,250)
         self.C_polygon_name_coordinates = (1670,850)
         
         # Direction AC
@@ -1718,8 +1718,7 @@ class Camera1128(MultiLane):
     def add_detection_annotation(self, frame):        
         cv2.polylines(frame, [self.A_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
         cv2.polylines(frame, [self.B_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
-        cv2.polylines(frame, [self.C_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
-        cv2.polylines(frame, [self.D_polygon], isClosed=True, color=(255, 0, 0), thickness=3)
+        cv2.polylines(frame, [self.C_polygon], isClosed=True, color=(255, 0, 0), thickness=3)        
 
         cv2.putText(frame, self.A_polygon_name, self.A_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(frame, self.B_polygon_name, self.B_polygon_name_coordinates, cv2.FONT_HERSHEY_TRIPLEX, 2, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
@@ -1729,7 +1728,7 @@ class Camera1128(MultiLane):
         annotate_detection_result(frame, self.detected_vehicles, self.dir1_offset, self.dir1_result_origin, "AC")
         annotate_detection_result(frame, self.detected_vehicles, self.dir2_offset, self.dir2_result_origin, "BC")
         annotate_detection_result(frame, self.detected_vehicles, self.dir3_offset, self.dir3_result_origin, "CA")
-        annotate_detection_result(frame, self.detected_vehicles, self.dir4_offset, self.dir5_result_origin, "CB")                
+        annotate_detection_result(frame, self.detected_vehicles, self.dir4_offset, self.dir4_result_origin, "CB")                
    
     def _identity_polygon_area(self, cur_center_coord):
         areas = []
@@ -1756,16 +1755,16 @@ class Camera551(MultiLane):
     def __init__(self):
         super().__init__()
        
-        self.A_polygon = np.array([[0,400], [400,400], [400,800], [0,800]], np.int32)
+        self.A_polygon = np.array([[0,200], [400,200], [400,700], [0,700]], np.int32)
         self.A_polygon = self.A_polygon.reshape((-1, 1, 2))
 
-        self.B_polygon = np.array([[405,300], [1100,300], [1100,600], [405,600]], np.int32)
+        self.B_polygon = np.array([[410,100], [1500,100], [1500,600], [410,600]], np.int32)
         self.B_polygon = self.B_polygon.reshape((-1, 1, 2))
 
-        self.C_polygon = np.array([[1200,300], [1980,300], [1980,800], [1200,800]], np.int32)
+        self.C_polygon = np.array([[1510,200], [1980,200], [1980,700], [1510,700]], np.int32)
         self.C_polygon = self.C_polygon.reshape((-1, 1, 2))
 
-        self.D_polygon = np.array([[0,805], [1920,805], [1920,1080], [0,1080]], np.int32)
+        self.D_polygon = np.array([[0,750], [1920,750], [1920,1080], [0,1080]], np.int32)
         self.D_polygon = self.D_polygon.reshape((-1, 1, 2))
         
         self.A_polygon_name_coordinates = (50,250)
