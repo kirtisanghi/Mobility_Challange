@@ -43,6 +43,6 @@ COPY models /application/models/
 RUN rm /usr/bin/python3
 
 # createa symantic link from python3.11 to python3
-RUN ls -s /usr/bin/python3.11 /usr/bin/python3
+RUN ln -s /usr/bin/python3.11 /usr/bin/python3
 
 ENTRYPOINT ["python3"]
