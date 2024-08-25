@@ -3,59 +3,60 @@
     "Cumulative Counts": {
       "BC": {
         "Bicycle": 0,
-        "Bus": 0,
-        "Cars": 0,
-        "Two-Wheeler": 0,
-        "Three-Wheeler": 0,
-        "LCV": 0,
-        "Truck": 0
+        "Bus": 27,
+        "Cars": 23,
+        "Two-Wheeler": 15,
+        "Three-Wheeler": 7,
+        "LCV": 3,
+        "Truck": 6
       },
       "BE": {
         "Bicycle": 0,
-        "Bus": 0,
-        "Cars": 0,
-        "Two-Wheeler": 0,
-        "Three-Wheeler": 0,
+        "Bus": 15,
+        "Cars": 14,
+        "Two-Wheeler": 7,
+        "Three-Wheeler": 3,
         "LCV": 0,
-        "Truck": 0
+        "Truck": 4
       },
       "DA": {
-        "Bicycle": 0,
-        "Bus": 0,
-        "Cars": 0,
-        "Two-Wheeler": 0,
-        "Three-Wheeler": 0,
-        "LCV": 0,
-        "Truck": 0
+        "Bicycle": 1,
+        "Bus": 9,
+        "Cars": 75,
+        "Two-Wheeler": 58,
+        "Three-Wheeler": 25,
+        "LCV": 1,
+        "Truck": 3
       },
       "DE": {
         "Bicycle": 0,
-        "Bus": 0,
-        "Cars": 0,
-        "Two-Wheeler": 0,
-        "Three-Wheeler": 0,
-        "LCV": 0,
-        "Truck": 0
+        "Bus": 16,
+        "Cars": 86,
+        "Two-Wheeler": 60,
+        "Three-Wheeler": 31,
+        "LCV": 4,
+        "Truck": 10
       },
       "FA": {
-        "Bicycle": 0,
-        "Bus": 1,
-        "Cars": 3,
-        "Two-Wheeler": 0,
-        "Three-Wheeler": 1,
-        "LCV": 0,
-        "Truck": 0
+        "Bicycle": 1,
+        "Bus": 9,
+        "Cars": 179,
+        "Two-Wheeler": 96,
+        "Three-Wheeler": 37,
+        "LCV": 4,
+        "Truck": 11
       },
       "FC": {
         "Bicycle": 0,
-        "Bus": 0,
-        "Cars": 0,
-        "Two-Wheeler": 0,
-        "Three-Wheeler": 0,
+        "Bus": 5,
+        "Cars": 18,
+        "Two-Wheeler": 11,
+        "Three-Wheeler": 10,
         "LCV": 0,
-        "Truck": 0
+        "Truck": 1
       }
     },
-    "Predicted Counts": {}
+    "Predicted Counts": {
+    }
   }
 }
