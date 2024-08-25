@@ -39,21 +39,18 @@ from .detection import (
 logger = logging.getLogger(__name__)
 
 
-def detect_and_track_with_local_file(video_path: str, output_path: str = None, push_to_gcs: bool = False):
+def detect_and_track_with_local_file(video_path: str, output_path: str = None, push_to_gcs: bool = False, start_time=None):
     """ wrapper to trigger object detection using local video file """
     logger.debug("using local file for running object detection and tracking")
     file_name = extract_file_name(video_path)
     if output_path is None:
         output_path = f"{extract_file_name_minus_extension(file_name)}.csv"
     logger.debug(f"Input File: {file_name}, Output File: {output_path}")
-    camera_name, sampled_data_frame = detect_and_track(video_path, file_name)
-
-    if environmental_variable_is_present(LEADER_BOARD_ENV):
-        logger.debug(f"constructing dataframe as per leaderboard guidelines")
-        sampled_data_frame = include_leaderboard_submission_guidelines(sampled_data_frame)
+    camera_name, sampled_data_frame = detect_and_track(video_path, file_name, start_time=start_time)
 
     # save the dataframes now
-    save_output(sampled_data_frame, output_path, push_to_gcs, camera_name)
+    # save_output(sampled_data_frame, output_path, push_to_gcs, camera_name)
+    return sampled_data_frame
 
 
 def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path: str = None, push_to_gcs: bool = False):
@@ -72,7 +69,7 @@ def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path:
     save_output(sampled_data_frame, output_path, push_to_gcs, camera_name)
 
 
-def detect_and_track(video_path: str, file_name: str):
+def detect_and_track(video_path: str, file_name: str, start_time=None):
     """
     initiate object detection and tracking using yolo
     model for the provided video path
@@ -82,11 +79,11 @@ def detect_and_track(video_path: str, file_name: str):
     camera_name = extract_camera_name(file_name)
     logger.debug(f"Camera Name: {camera_name}")
     if environmental_variable_is_present(LEADER_BOARD_ENV):
-        video_start_time_stamp = dt.now()
+        video_start_time_stamp = start_time or dt.now()
     else:
         video_start_time_stamp = construct_timestamp_from_file_name(file_name)
 
-    #logger.debug(f"detection_class_map[camera_name]: {detection_class_map[camera_name]}")
+    # logger.debug(f"detection_class_map[camera_name]: {detection_class_map[camera_name]}")
     try:
         detection_class = detection_class_map[camera_name]
     except KeyError:
@@ -128,7 +125,6 @@ def detect_and_track(video_path: str, file_name: str):
 
             # add grid to the image frame
             frame = draw_grid_with_coordinates(frame)
-
             
             if environmental_variable_is_present(SHOW_DETECTION_ANNOTATIONS):
                 detection_class_obj.add_detection_annotation(frame)
@@ -168,7 +164,6 @@ def detect_and_track(video_path: str, file_name: str):
                 # combine the bounding boxes, confidence score, label and
                 # track id of all the detected objects in the current frame
                 # and loop through it for further processing
-                #logger.info(f"TARGET_CLASS_LIST: {TARGET_CLASS_LIST}")
                 for bounding_box, track_id, score, label_id in zip(bounding_boxes, track_ids, scores, labels):
                     label = trained_object_map[label_id]
                     
@@ -179,12 +174,12 @@ def detect_and_track(video_path: str, file_name: str):
                         detection_class_obj.update_track_history(track_id, center_coordinates)
                         if isinstance(detection_class_obj, MultiLane):
                             detection_class_obj.update_polygon_track_history(track_id, center_coordinates)
-                        elif  isinstance(detection_class_obj, DoubleLane):
+                        elif isinstance(detection_class_obj, DoubleLane):
                             detection_class_obj.update_polygon_track_history(track_id, center_coordinates)
                         annotate_object_center(frame, obj_identifier, center_coordinates)
 
                         if track_id in detection_class_obj.crossed_vehicles:
-                            #logger.debug(f"object {label}({track_id}) already detected and annotated")
+                            logger.debug(f"object {label}({track_id}) already detected and annotated")
                             annotate_object_bounding_box(frame, bounding_box)
                         
                         if detection_class_obj.can_run_detection(track_id):

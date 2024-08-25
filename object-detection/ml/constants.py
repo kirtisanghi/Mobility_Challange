@@ -60,9 +60,9 @@ DETECTABLE_CLASSES = {
 }
 
 VEHICLE_CLASS_MAP = {
-    "car":"oCar",
-    "motorcycle":"Motorcycle",
-    "bus":"oBus",    
+    "car": "oCar",
+    "motorcycle": "Motorcycle",
+    "bus": "oBus",
     "IndianBicycle": "Bicycle",
     "IndianBus": "Bus",
     "IndianCar": "Cars",
@@ -113,5 +113,5 @@ POLYGON_E = "pol_e"
 POLYGON_F = "pol_f"
 POLYGON_G = "pol_g"
 POLYGON_H = "pol_h"
-#RESOLUTION = (640,384)
-RESOLUTION = (1920,1080)
+# RESOLUTION = (640,384)
+RESOLUTION = (1920, 1080)
