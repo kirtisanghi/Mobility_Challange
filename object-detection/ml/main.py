@@ -95,7 +95,6 @@ def main():
             camera_name: {
                 "Cumulative Counts": cumulative_df_transposed.to_dict(),
                 "Predicted Counts": predicted_dataframe
-
             }
         }
         logger.info(f"{output_file_path}: {output_file_content}")
