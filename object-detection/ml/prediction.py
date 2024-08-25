@@ -44,7 +44,6 @@ def predict(model, actual_data, step_window=15, time_window=15) -> pd.DataFrame:
         actual_data_ndarray = np.vstack([actual_data_ndarray[1:], prediction])
     predicted_dataframe = pd.DataFrame(predictions, columns=actual_data.columns)
     predicted_dataframe = predicted_dataframe.applymap(lambda count: max(0, int(count)))
-    print(predicted_dataframe)
     return predicted_dataframe.sum()
 
 
@@ -96,12 +95,4 @@ def run_predictions(object_detection_df: pd.DataFrame):
         # add the prediction to local datastore
         predicted_datastore[turning_pattern] = predicted_vehicle_count.to_dict()
     logger.info(f"prediction data: {predicted_datastore}")
-    return predicted_datastore.items()
-
-
-if __name__ == "__main__":
-    data_path = "merged_file.csv"
-    logger.debug(f"reading data from file path: {data_path}")
-    data = pd.read_csv(data_path)
-    data.drop(columns=["Unnamed: 0"], axis=1, inplace=True)
-    run_predictions(data)
+    return predicted_datastore
