@@ -1,0 +1,61 @@
+{
+  "SBI_Bnk_JN_FIX_3": {
+    "Cumulative Counts": {
+      "BC": {
+        "Bicycle": 0,
+        "Bus": 0,
+        "Cars": 0,
+        "Two-Wheeler": 0,
+        "Three-Wheeler": 0,
+        "LCV": 0,
+        "Truck": 0
+      },
+      "BE": {
+        "Bicycle": 0,
+        "Bus": 0,
+        "Cars": 0,
+        "Two-Wheeler": 0,
+        "Three-Wheeler": 0,
+        "LCV": 0,
+        "Truck": 0
+      },
+      "DA": {
+        "Bicycle": 0,
+        "Bus": 0,
+        "Cars": 0,
+        "Two-Wheeler": 0,
+        "Three-Wheeler": 0,
+        "LCV": 0,
+        "Truck": 0
+      },
+      "DE": {
+        "Bicycle": 0,
+        "Bus": 0,
+        "Cars": 0,
+        "Two-Wheeler": 0,
+        "Three-Wheeler": 0,
+        "LCV": 0,
+        "Truck": 0
+      },
+      "FA": {
+        "Bicycle": 0,
+        "Bus": 1,
+        "Cars": 3,
+        "Two-Wheeler": 0,
+        "Three-Wheeler": 1,
+        "LCV": 0,
+        "Truck": 0
+      },
+      "FC": {
+        "Bicycle": 0,
+        "Bus": 0,
+        "Cars": 0,
+        "Two-Wheeler": 0,
+        "Three-Wheeler": 0,
+        "LCV": 0,
+        "Truck": 0
+      }
+    },
+    "Predicted Counts": {}
+  }
+}

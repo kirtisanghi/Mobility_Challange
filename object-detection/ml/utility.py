@@ -3,6 +3,7 @@
 import logging
 import os
 from datetime import datetime as dt
+from datetime import timedelta as td
 
 import yaml
 import cv2
@@ -31,6 +32,12 @@ from .constants import (
 
 # setup the logger
 logger = logging.getLogger(__name__)
+
+
+def build_video_start_time():
+    now = dt.now()
+    fifteen_minutes_later = now + td(minutes=15)
+    return now, fifteen_minutes_later
 
 
 def is_colab_env():
@@ -85,7 +92,7 @@ def extract_file_name_minus_extension(file_name: str) -> str:
 
 def construct_timestamp_from_file_name(file_name: str):
     if environmental_variable_is_present(RUNNING_IN_LOCAL):
-        file_name = file_name.replace('&',':')
+        file_name = file_name.replace('&', ':')
 
     _, timestamp_part = file_name.split("_time_")
     timestamp_part = timestamp_part.removesuffix(".mp4")
@@ -143,7 +150,6 @@ def annotate_object_bounding_box(frame, bounding_box):
     x_min, y_min, x_max, y_max = bounding_box
     x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
     cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), GREEN_RGB, 2)
-
 
 
 def annotate_detection_result(frame, detected_vehicles, offset, origin_coordinates, direction):
@@ -226,7 +232,8 @@ class AmazonService:
                 logger.warning(f"no objects found in bucket \"{self.bucket}\" with prefix \"{prefix}\"")
                 return []
             video_keys = [content.get("Key") for content in contents if content.get("Key").endswith(".mp4")]
-            logger.info(f"found {len(contents)} objects with prefix {prefix}, of which {len(video_keys)} are video files")
+            logger.info(
+                f"found {len(contents)} objects with prefix {prefix}, of which {len(video_keys)} are video files")
             return video_keys
         except ClientError as err:
             raise Exception(f"an error occurred while listing objects in {self.bucket} with prefix \"{prefix}\"\n{err}")
@@ -264,11 +271,11 @@ def save_output(data_frame: pd.DataFrame, output_path: str, to_gcs: bool, index:
         data_frame.to_csv(output_path)
 
 
-def process_dataframe(time_series_df:pd.DataFrame):
-    grouped_data = time_series_df.groupby(TURNING_PATTERN_COL)    
+def process_dataframe(time_series_df: pd.DataFrame):
+    grouped_data = time_series_df.groupby(TURNING_PATTERN_COL)
 
-    #Get the count of car, oCar, Two-Wheeler,Motorcycle and bus,oBus for the turning patterns
-    #car is the class from customized yolo while oCar is original yolo class. Same for two-wheeler and bus also
+    # Get the count of car, oCar, Two-Wheeler,Motorcycle and bus,oBus for the turning patterns
+    # car is the class from customized yolo while oCar is original yolo class. Same for two-wheeler and bus also
     turningpattern_car_count = grouped_data["Cars"].sum()
     turningpattern_ocar_count = grouped_data["oCar"].sum()
     turningpattern_TwoWheeler_count = grouped_data["Two-Wheeler"].sum()
@@ -288,29 +295,28 @@ def process_dataframe(time_series_df:pd.DataFrame):
     obus_count = turningpattern_obus_count.to_frame()
     bus_count["bus_diff"] = bus_count["Bus"] - obus_count["oBus"]
 
-    #If, for a specific turning pattern, count is more for original Yolo class than customized yolo class, it means original 
-    #Yolo class is working better for the particular direction. So use that data instead
-    for key,value in carcount.iterrows():
+    # If, for a specific turning pattern, count is more for original Yolo class than customized yolo class,
+    # it means original Yolo class is working better for the particular direction. So use that data instead
+    for key, value in carcount.iterrows():
         turning_pattern = key
         row_values = value
-        print(row_values["car_diff"])
-        if (row_values["car_diff"]<0):
-            time_series_df["Cars"] = np.where((time_series_df["Turning Pattern"] == turning_pattern), time_series_df["oCar"], time_series_df["Cars"])
+        if (row_values["car_diff"] < 0):
+            time_series_df["Cars"] = np.where((time_series_df["Turning Pattern"] == turning_pattern),
+                                              time_series_df["oCar"], time_series_df["Cars"])
 
-    for key,value in twoWheeler_count.iterrows():
+    for key, value in twoWheeler_count.iterrows():
         turning_pattern = key
         row_values = value
-        print(row_values["twoWheeler_diff"])
-        if (row_values["twoWheeler_diff"]<0):
-            time_series_df["Two-Wheeler"] = np.where((time_series_df["Turning Pattern"] == turning_pattern), time_series_df["Motorcycle"], time_series_df["Two-Wheeler"])
+        if (row_values["twoWheeler_diff"] < 0):
+            time_series_df["Two-Wheeler"] = np.where((time_series_df["Turning Pattern"] == turning_pattern),
+                                                     time_series_df["Motorcycle"], time_series_df["Two-Wheeler"])
 
-    for key,value in bus_count.iterrows():
+    for key, value in bus_count.iterrows():
         turning_pattern = key
         row_values = value
-        print(row_values["bus_diff"])
-        if (row_values["bus_diff"]<0):
-            time_series_df["Bus"] = np.where((time_series_df["Turning Pattern"] == turning_pattern), time_series_df["oBus"], time_series_df["Bus"])
+        if (row_values["bus_diff"] < 0):
+            time_series_df["Bus"] = np.where((time_series_df["Turning Pattern"] == turning_pattern),
+                                             time_series_df["oBus"], time_series_df["Bus"])
 
-    #Finally remove the original YOLO data from dataframe
-    time_series_df.drop(columns=["oCar","Motorcycle","oBus"],axis=1,inplace=True)
-
+    # Finally remove the original YOLO data from dataframe
+    time_series_df.drop(columns=["oCar", "Motorcycle", "oBus"], axis=1, inplace=True)

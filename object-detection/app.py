@@ -25,6 +25,7 @@ folder with 2 required arguments
 
 python app.py Stn_HD_1.mp4 Output_Turning_Patterns.csv
 """
+import json
 import os
 import sys
 from ml.main import main as main_prog
@@ -36,33 +37,35 @@ logger = logging.getLogger(__name__)
 
 def main():
     try:
-        file_name, video_name, output_file_name = sys.argv[0], sys.argv[1], sys.argv[2]
+        file_name, input_file, output_file = sys.argv[0], sys.argv[1], sys.argv[2]
     except IndexError:
         exit(
             f"[warn]: required arguments missing, please provide all the required arguments "
             f"and execute the script in following way\n\n"
-            f"python app.py {{input_video}} {{output_file_name}}\n\n"
-            f"input_video      -> Stn_HD_1.mp4\n"
-            f"output_file_name -> Output_Turning_Patterns.csv"
+            f"python app.py {{input_file.json}} {{output_file.json}}\n\n"
+            f"input_file      -> {'Cam_ID': {'Vid_1': '/path_to_vid_1', 'Vid_2': '/path_to_vid_2'}}\n"
+            f"                     https://drive.google.com/file/d/19EMxIqMXlRSYdd1uJ_d_U2fgIN4aMy7C/view"
+            f"output_file     -> {'Cam_ID': {'Cumulative Counts': counts_by_class_turning_pattern, 'Predicted Counts': counts_by_class_turning_pattern }}"
+            f"                     https://drive.google.com/file/d/19HL-Anae3SjFIwVypeJ-372L7teczzdd/view"
         )
-    if video_name is None or video_name.strip() == "":
-        exit(f"[error]: please provide a valid local path to the input video")
+    if input_file is None or input_file.strip() == "":
+        exit(f"[error]: please provide a valid local path to the input file")
 
-    if output_file_name is None or output_file_name.strip() == "":
-        exit(f"[error]: please provide a csv file name to store object detection results")
+    if output_file is None or output_file.strip() == "":
+        exit(f"[error]: please provide a valid local path to the output file")
 
-    logger.info(f"Video File Path: {video_name}")
-    logger.info(f"Detection Results Path: {output_file_name}")
+    logger.info(f"Input File Path: {input_file}")
+    logger.info(f"Output File Path: {output_file}")
 
     # setting this environment variable to claim the execution of
     # this script for leaderboard evaluation
     os.environ[LEADER_BOARD_ENV] = "True"
     sys.argv = [
         file_name,
-        "--input-path",
-        video_name,
-        "--output-file-name",
-        output_file_name
+        "--input-file-path",
+        input_file,
+        "--output-file-path",
+        output_file
     ]
     main_prog()
 
