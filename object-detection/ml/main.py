@@ -81,8 +81,8 @@ def main():
         camera_name = list(input_file_content.keys())[0]
         video_1, video_2 = input_file_content[camera_name]["Vid_1"], input_file_content[camera_name]["Vid_2"]
         video_1_start_time, video_2_start_time = build_video_start_time()
-        timeseries_df_1 = detect_and_track_with_local_file(video_1, start_time=video_1_start_time)
-        timeseries_df_2 = detect_and_track_with_local_file(video_2, start_time=video_2_start_time)
+        timeseries_df_1 = detect_and_track_with_local_file(video_1, camera_name, start_time=video_1_start_time)
+        timeseries_df_2 = detect_and_track_with_local_file(video_2, camera_name, start_time=video_2_start_time)
         timeseries_df_merged = pd.concat([timeseries_df_1, timeseries_df_2], axis=0)
 
         logger.debug(f"constructing dataframe as per leaderboard guidelines")

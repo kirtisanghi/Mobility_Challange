@@ -39,14 +39,19 @@ from .detection import (
 logger = logging.getLogger(__name__)
 
 
-def detect_and_track_with_local_file(video_path: str, output_path: str = None, push_to_gcs: bool = False, start_time=None):
+def detect_and_track_with_local_file(
+        video_path: str,
+        camera_name: str,
+        output_path: str = None,
+        push_to_gcs: bool = False,
+        start_time=None):
     """ wrapper to trigger object detection using local video file """
     logger.debug("using local file for running object detection and tracking")
     file_name = extract_file_name(video_path)
     if output_path is None:
         output_path = f"{extract_file_name_minus_extension(file_name)}.csv"
     logger.debug(f"Input File: {file_name}, Output File: {output_path}")
-    camera_name, sampled_data_frame = detect_and_track(video_path, file_name, start_time=start_time)
+    sampled_data_frame = detect_and_track(video_path, file_name, camera_name, start_time=start_time)
 
     # save the dataframes now
     # save_output(sampled_data_frame, output_path, push_to_gcs, camera_name)
@@ -69,14 +74,14 @@ def detect_and_track_with_s3_file(object_key: str, signed_url: str, output_path:
     save_output(sampled_data_frame, output_path, push_to_gcs, camera_name)
 
 
-def detect_and_track(video_path: str, file_name: str, start_time=None):
+def detect_and_track(video_path: str, file_name: str, camera_name: str, start_time=None):
     """
     initiate object detection and tracking using yolo
     model for the provided video path
     """
     # extract the camera name (unique identifier) from
     # the video file name
-    camera_name = extract_camera_name(file_name)
+    # camera_name = extract_camera_name(file_name)
     logger.debug(f"Camera Name: {camera_name}")
     if environmental_variable_is_present(LEADER_BOARD_ENV):
         video_start_time_stamp = start_time or dt.now()
@@ -231,5 +236,5 @@ def detect_and_track(video_path: str, file_name: str, start_time=None):
         camera_name,
         grouping_key
     )
-    return camera_name, sampled_and_aggregated_data
+    return sampled_and_aggregated_data
 
